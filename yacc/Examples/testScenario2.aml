@@ -1,0 +1,30 @@
+// Dual-check alarm: It will trigger a buzzer if and only if two buttons are pushed at the very same time. Releasing at least one of the button stop the sound.
+
+application foo {
+  // Declaring bricks
+  sensor button1 : 9;
+  sensor button2 : 10; // Assuming two buttons connected to pins 9 and 10
+  actuator led    : 11;
+  actuator buzzer : 12;
+
+  OneButtonPressed {
+    led <= HIGH;
+    buzzer <= LOW;
+    button1 is HIGH and button2 is HIGH => TwoButtonsPressed;
+    button1 is LOW and button2 is LOW => off;
+  }
+
+   -> TwoButtonsPressed {
+       led <= HIGH;
+       buzzer <= HIGH;
+       button1 is LOW xor button2 is LOW => OneButtonPressed;
+       button1 is LOW and button2 is LOW => off;
+    }
+
+   -> off {
+       led <= LOW;
+       buzzer <= LOW;
+       button1 is HIGH and button2 is HIGH => TwoButtonsPressed;
+       button1 is HIGH xor button2 is HIGH => OneButtonPressed;
+   }
+}
