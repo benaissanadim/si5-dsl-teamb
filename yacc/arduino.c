@@ -309,7 +309,7 @@ static void emit_transitions(char *current_state, Transition *list) {
     printf("    time = millis();\n");
     printf("    state_%s();\n", p->newstate);
     printf("    return;\n");
-    printf("  } \n ");
+    printf("  } \n");
 
     }
   printf("  } else {\n");
