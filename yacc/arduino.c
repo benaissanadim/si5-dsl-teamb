@@ -302,17 +302,17 @@ static void emit_condition(Condition *condition) {
 
 static void emit_transitions(char *current_state, Transition *list) {
   printf("  boolean guard =  millis() - time > debounce;\n");
+    printf("  ");
   for (Transition *p = list; p; p = p->next) {
-    printf("  if ( ");
+    printf("if ( ");
     emit_condition(p->condition);
     printf(" && guard ) {\n");
     printf("    time = millis();\n");
     printf("    state_%s();\n", p->newstate);
-    printf("    return;\n");
-    printf("  } \n");
+    printf("  } \n  else ");
 
     }
-  printf("  } else {\n");
+  printf("{\n");
   printf("    state_%s();\n", current_state);
   printf("  }\n");
 }
