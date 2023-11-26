@@ -1,0 +1,28 @@
+
+app foo initial state off {
+  // Declaring bricks
+  bricks
+  Sensor button : 9
+  Actuator led    : 11
+  Actuator buzzer : 12
+
+  // Declaring states
+  states
+  firstPush {
+    led <= LOW
+    buzzer <= HIGH
+    button is HIGH => secondPush
+  }
+
+   secondPush {
+       led <= HIGH
+       buzzer <= LOW
+       button is HIGH => off
+    }
+
+    off {
+       led <= LOW
+       buzzer <= LOW
+       button is HIGH => firstPush
+   }
+}
