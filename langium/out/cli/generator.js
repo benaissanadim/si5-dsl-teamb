@@ -92,14 +92,50 @@ function compileState(state, fileNode) {
 				case ` +
         state.name +
         `:`);
-    for (const action of state.actions) {
-        compileAction(action, fileNode);
+    if (state.body.$type === "NormalState") {
+        compileNormalState(state.body, fileNode);
     }
-    for (const transition of state.transitions) {
+    else if (state.body.$type === "ErrorState") {
+        compileErrorState(state.body, fileNode);
+    }
+    var bounceGuards = [];
+    for (const transition of state.body.transitions) {
+        fileNode.append(`
+					` + bounceGuardVars(transition.condition, bounceGuards));
+    }
+    for (const transition of state.body.transitions) {
         compileTransition(transition, fileNode);
     }
     fileNode.append(`
 				break;`);
+}
+function compileNormalState(state, fileNode) {
+    for (const action of state.actions) {
+        compileAction(action, fileNode);
+    }
+}
+function compileErrorState(state, fileNode) {
+    var _a, _b;
+    const actuator = state.errorActuator;
+    const blinkCount = state.errorNumber;
+    const pauseTime = state.pauseTime;
+    fileNode.append(`
+					// Blink the error actuator
+					for (int i = 0; i < ` +
+        blinkCount +
+        `; i++) {
+						digitalWrite(` +
+        ((_a = actuator.ref) === null || _a === void 0 ? void 0 : _a.outputPin) +
+        `, HIGH); // turn the error actuator on
+						delay(500); // wait for 500ms
+						digitalWrite(` +
+        ((_b = actuator.ref) === null || _b === void 0 ? void 0 : _b.outputPin) +
+        `, LOW); // turn the error actuator off
+						delay(500); // wait for 500ms
+					}
+					delay(` +
+        pauseTime +
+        ` * 1000);`);
 }
 function compileAction(action, fileNode) {
     var _a;
@@ -130,14 +166,19 @@ function compileCondition(condition) {
     }
     return "";
 }
-function bounceGuardVars(condition) {
-    var _a, _b;
+function bounceGuardVars(condition, bounceGuardsArray) {
+    var _a, _b, _c, _d;
     if (condition.$type === "SignalCondition") {
-        return `${(_a = condition.sensor.ref) === null || _a === void 0 ? void 0 : _a.name}BounceGuard = millis() - ${(_b = condition.sensor.ref) === null || _b === void 0 ? void 0 : _b.name}LastDebounceTime > debounce;\n					`;
+        if (!bounceGuardsArray.includes((_a = condition.sensor.ref) === null || _a === void 0 ? void 0 : _a.name)) {
+            bounceGuardsArray.push((_b = condition.sensor.ref) === null || _b === void 0 ? void 0 : _b.name);
+            return `${(_c = condition.sensor.ref) === null || _c === void 0 ? void 0 : _c.name}BounceGuard = millis() - ${(_d = condition.sensor.ref) === null || _d === void 0 ? void 0 : _d.name}LastDebounceTime > debounce;\n					`;
+        }
+        else
+            return "";
     }
     else if (condition.$type === "CompositeCondition") {
-        const leftCondition = bounceGuardVars(condition.left);
-        const rightCondition = bounceGuardVars(condition.right);
+        const leftCondition = bounceGuardVars(condition.left, bounceGuardsArray);
+        const rightCondition = bounceGuardVars(condition.right, bounceGuardsArray);
         return `${leftCondition}${rightCondition}`;
     }
     return "";
@@ -145,7 +186,7 @@ function bounceGuardVars(condition) {
 function lastBouncedTime(condition) {
     var _a;
     if (condition.$type === "SignalCondition") {
-        return `${(_a = condition.sensor.ref) === null || _a === void 0 ? void 0 : _a.name}LastDebounceTime = millis();\n					`;
+        return `${(_a = condition.sensor.ref) === null || _a === void 0 ? void 0 : _a.name}LastDebounceTime = millis();\n						`;
     }
     else if (condition.$type === "CompositeCondition") {
         const leftCondition = lastBouncedTime(condition.left);
@@ -160,18 +201,15 @@ function compileTransition(transition, fileNode) {
     while (condition.$type === "CompositeCondition") {
         condition = condition.left;
     }
-    fileNode.append(`
-		 			` +
-        bounceGuardVars(transition.condition) +
-        `if ( ` +
+    fileNode.append(`if ( ` +
         compileCondition(transition.condition) +
         ` ) {
-					` +
+						` +
         lastBouncedTime(transition.condition) +
         `currentState = ` +
         ((_a = transition.next.ref) === null || _a === void 0 ? void 0 : _a.name) +
         `;
 					}
-		`);
+					`);
 }
 //# sourceMappingURL=generator.js.map

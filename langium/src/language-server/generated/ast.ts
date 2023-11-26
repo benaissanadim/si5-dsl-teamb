@@ -23,7 +23,7 @@ export function isCondition(item: unknown): item is Condition {
 }
 
 export interface Action extends AstNode {
-    readonly $container: State;
+    readonly $container: NormalState;
     readonly $type: 'Action';
     actuator: Reference<Actuator>
     value: Signal
@@ -76,6 +76,21 @@ export function isCompositeCondition(item: unknown): item is CompositeCondition 
     return reflection.isInstance(item, CompositeCondition);
 }
 
+export interface ErrorState extends AstNode {
+    readonly $container: State;
+    readonly $type: 'ErrorState';
+    errorActuator: Reference<Actuator>
+    errorNumber: number
+    pauseTime: number
+    transitions: Array<Transition>
+}
+
+export const ErrorState = 'ErrorState';
+
+export function isErrorState(item: unknown): item is ErrorState {
+    return reflection.isInstance(item, ErrorState);
+}
+
 export interface LogicalOperator extends AstNode {
     readonly $container: CompositeCondition;
     readonly $type: 'LogicalOperator';
@@ -100,6 +115,19 @@ export const NegationOperator = 'NegationOperator';
 
 export function isNegationOperator(item: unknown): item is NegationOperator {
     return reflection.isInstance(item, NegationOperator);
+}
+
+export interface NormalState extends AstNode {
+    readonly $container: State;
+    readonly $type: 'NormalState';
+    actions: Array<Action>
+    transitions: Array<Transition>
+}
+
+export const NormalState = 'NormalState';
+
+export function isNormalState(item: unknown): item is NormalState {
+    return reflection.isInstance(item, NormalState);
 }
 
 export interface Sensor extends AstNode {
@@ -144,9 +172,8 @@ export function isSignalCondition(item: unknown): item is SignalCondition {
 export interface State extends AstNode {
     readonly $container: App;
     readonly $type: 'State';
-    actions: Array<Action>
+    body: ErrorState | NormalState
     name: string
-    transitions: Array<Transition>
 }
 
 export const State = 'State';
@@ -156,7 +183,7 @@ export function isState(item: unknown): item is State {
 }
 
 export interface Transition extends AstNode {
-    readonly $container: State;
+    readonly $container: ErrorState | NormalState;
     readonly $type: 'Transition';
     condition: Condition
     next: Reference<State>
@@ -175,8 +202,10 @@ export interface ArduinoMlAstType {
     Brick: Brick
     CompositeCondition: CompositeCondition
     Condition: Condition
+    ErrorState: ErrorState
     LogicalOperator: LogicalOperator
     NegationOperator: NegationOperator
+    NormalState: NormalState
     Sensor: Sensor
     Signal: Signal
     SignalCondition: SignalCondition
@@ -187,7 +216,7 @@ export interface ArduinoMlAstType {
 export class ArduinoMlAstReflection extends AbstractAstReflection {
 
     getAllTypes(): string[] {
-        return ['Action', 'Actuator', 'App', 'Brick', 'CompositeCondition', 'Condition', 'LogicalOperator', 'NegationOperator', 'Sensor', 'Signal', 'SignalCondition', 'State', 'Transition'];
+        return ['Action', 'Actuator', 'App', 'Brick', 'CompositeCondition', 'Condition', 'ErrorState', 'LogicalOperator', 'NegationOperator', 'NormalState', 'Sensor', 'Signal', 'SignalCondition', 'State', 'Transition'];
     }
 
     protected override computeIsSubtype(subtype: string, supertype: string): boolean {
@@ -209,7 +238,8 @@ export class ArduinoMlAstReflection extends AbstractAstReflection {
     getReferenceType(refInfo: ReferenceInfo): string {
         const referenceId = `${refInfo.container.$type}:${refInfo.property}`;
         switch (referenceId) {
-            case 'Action:actuator': {
+            case 'Action:actuator':
+            case 'ErrorState:errorActuator': {
                 return Actuator;
             }
             case 'App:initial':
@@ -236,9 +266,17 @@ export class ArduinoMlAstReflection extends AbstractAstReflection {
                     ]
                 };
             }
-            case 'State': {
+            case 'ErrorState': {
                 return {
-                    name: 'State',
+                    name: 'ErrorState',
+                    mandatory: [
+                        { name: 'transitions', type: 'array' }
+                    ]
+                };
+            }
+            case 'NormalState': {
+                return {
+                    name: 'NormalState',
                     mandatory: [
                         { name: 'actions', type: 'array' },
                         { name: 'transitions', type: 'array' }

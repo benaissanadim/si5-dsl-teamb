@@ -8,11 +8,13 @@ app foo initial state off {
   // Declaring states
   states
   on {
+    NormalState
     led <= HIGH
     button is LOW => off
   }
 
   off {
+    NormalState
     led <= LOW
     button is HIGH => on
   }

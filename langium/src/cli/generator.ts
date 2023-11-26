@@ -9,6 +9,8 @@ import {
   State,
   Transition,
   Condition,
+  NormalState,
+  ErrorState,
 } from "../language-server/generated/ast";
 import { extractDestinationAndName } from "./cli-util";
 
@@ -123,14 +125,61 @@ function compileState(state: State, fileNode: CompositeGeneratorNode) {
       state.name +
       `:`
   );
-  for (const action of state.actions) {
-    compileAction(action, fileNode);
+  if (state.body.$type === "NormalState") {
+    compileNormalState(state.body, fileNode);
+  } else if (state.body.$type === "ErrorState") {
+    compileErrorState(state.body, fileNode);
   }
-  for (const transition of state.transitions) {
+  var bounceGuards: Array<string | undefined> = [];
+  for (const transition of state.body.transitions) {
+    fileNode.append(
+      `
+					` + bounceGuardVars(transition.condition, bounceGuards)
+    );
+  }
+
+  for (const transition of state.body.transitions) {
     compileTransition(transition, fileNode);
   }
   fileNode.append(`
 				break;`);
+}
+
+function compileNormalState(
+  state: NormalState,
+  fileNode: CompositeGeneratorNode
+) {
+  for (const action of state.actions) {
+    compileAction(action, fileNode);
+  }
+}
+
+function compileErrorState(
+  state: ErrorState,
+  fileNode: CompositeGeneratorNode
+) {
+  const actuator = state.errorActuator;
+  const blinkCount = state.errorNumber;
+  const pauseTime = state.pauseTime;
+  fileNode.append(
+    `
+					// Blink the error actuator
+					for (int i = 0; i < ` +
+      blinkCount +
+      `; i++) {
+						digitalWrite(` +
+      actuator.ref?.outputPin +
+      `, HIGH); // turn the error actuator on
+						delay(500); // wait for 500ms
+						digitalWrite(` +
+      actuator.ref?.outputPin +
+      `, LOW); // turn the error actuator off
+						delay(500); // wait for 500ms
+					}
+					delay(` +
+      pauseTime +
+      ` * 1000);`
+  );
 }
 
 function compileAction(action: Action, fileNode: CompositeGeneratorNode) {
@@ -163,12 +212,18 @@ function compileCondition(condition: Condition): string {
   return "";
 }
 
-function bounceGuardVars(condition: Condition): string {
+function bounceGuardVars(
+  condition: Condition,
+  bounceGuardsArray: Array<string | undefined>
+): string {
   if (condition.$type === "SignalCondition") {
-    return `${condition.sensor.ref?.name}BounceGuard = millis() - ${condition.sensor.ref?.name}LastDebounceTime > debounce;\n					`;
+    if (!bounceGuardsArray.includes(condition.sensor.ref?.name)) {
+      bounceGuardsArray.push(condition.sensor.ref?.name);
+      return `${condition.sensor.ref?.name}BounceGuard = millis() - ${condition.sensor.ref?.name}LastDebounceTime > debounce;\n					`;
+    } else return "";
   } else if (condition.$type === "CompositeCondition") {
-    const leftCondition = bounceGuardVars(condition.left);
-    const rightCondition = bounceGuardVars(condition.right);
+    const leftCondition = bounceGuardVars(condition.left, bounceGuardsArray);
+    const rightCondition = bounceGuardVars(condition.right, bounceGuardsArray);
     return `${leftCondition}${rightCondition}`;
   }
   return "";
@@ -176,7 +231,7 @@ function bounceGuardVars(condition: Condition): string {
 
 function lastBouncedTime(condition: Condition): string {
   if (condition.$type === "SignalCondition") {
-    return `${condition.sensor.ref?.name}LastDebounceTime = millis();\n					`;
+    return `${condition.sensor.ref?.name}LastDebounceTime = millis();\n						`;
   } else if (condition.$type === "CompositeCondition") {
     const leftCondition = lastBouncedTime(condition.left);
     const rightCondition = lastBouncedTime(condition.right);
@@ -194,18 +249,15 @@ function compileTransition(
   }
 
   fileNode.append(
-    `
-		 			` +
-      bounceGuardVars(transition.condition) +
-      `if ( ` +
+    `if ( ` +
       compileCondition(transition.condition) +
       ` ) {
-					` +
+						` +
       lastBouncedTime(transition.condition) +
       `currentState = ` +
       transition.next.ref?.name +
       `;
 					}
-		`
+					`
   );
 }

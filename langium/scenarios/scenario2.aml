@@ -10,6 +10,7 @@ app foo initial state off {
   // Declaring states
   states
   OneButtonPressed {
+    NormalState
     led <= HIGH
     buzzer <= LOW
     ( button1 is HIGH and button2 is HIGH ) => TwoButtonsPressed
@@ -17,6 +18,7 @@ app foo initial state off {
   }
 
    TwoButtonsPressed {
+    NormalState
        led <= HIGH
        buzzer <= HIGH
        ( button1 is LOW xor button2 is LOW ) => OneButtonPressed
@@ -24,6 +26,7 @@ app foo initial state off {
     }
 
     off {
+      NormalState
        led <= LOW
        buzzer <= LOW
        ( button1 is HIGH and button2 is HIGH ) => TwoButtonsPressed

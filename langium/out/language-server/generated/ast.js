@@ -4,7 +4,7 @@
  * DO NOT EDIT MANUALLY!
  ******************************************************************************/
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.reflection = exports.ArduinoMlAstReflection = exports.isTransition = exports.Transition = exports.isState = exports.State = exports.isSignalCondition = exports.SignalCondition = exports.isSignal = exports.Signal = exports.isSensor = exports.Sensor = exports.isNegationOperator = exports.NegationOperator = exports.isLogicalOperator = exports.LogicalOperator = exports.isCompositeCondition = exports.CompositeCondition = exports.isApp = exports.App = exports.isActuator = exports.Actuator = exports.isAction = exports.Action = exports.isCondition = exports.Condition = exports.isBrick = exports.Brick = void 0;
+exports.reflection = exports.ArduinoMlAstReflection = exports.isTransition = exports.Transition = exports.isState = exports.State = exports.isSignalCondition = exports.SignalCondition = exports.isSignal = exports.Signal = exports.isSensor = exports.Sensor = exports.isNormalState = exports.NormalState = exports.isNegationOperator = exports.NegationOperator = exports.isLogicalOperator = exports.LogicalOperator = exports.isErrorState = exports.ErrorState = exports.isCompositeCondition = exports.CompositeCondition = exports.isApp = exports.App = exports.isActuator = exports.Actuator = exports.isAction = exports.Action = exports.isCondition = exports.Condition = exports.isBrick = exports.Brick = void 0;
 /* eslint-disable */
 const langium_1 = require("langium");
 exports.Brick = 'Brick';
@@ -37,6 +37,11 @@ function isCompositeCondition(item) {
     return exports.reflection.isInstance(item, exports.CompositeCondition);
 }
 exports.isCompositeCondition = isCompositeCondition;
+exports.ErrorState = 'ErrorState';
+function isErrorState(item) {
+    return exports.reflection.isInstance(item, exports.ErrorState);
+}
+exports.isErrorState = isErrorState;
 exports.LogicalOperator = 'LogicalOperator';
 function isLogicalOperator(item) {
     return exports.reflection.isInstance(item, exports.LogicalOperator);
@@ -47,6 +52,11 @@ function isNegationOperator(item) {
     return exports.reflection.isInstance(item, exports.NegationOperator);
 }
 exports.isNegationOperator = isNegationOperator;
+exports.NormalState = 'NormalState';
+function isNormalState(item) {
+    return exports.reflection.isInstance(item, exports.NormalState);
+}
+exports.isNormalState = isNormalState;
 exports.Sensor = 'Sensor';
 function isSensor(item) {
     return exports.reflection.isInstance(item, exports.Sensor);
@@ -74,7 +84,7 @@ function isTransition(item) {
 exports.isTransition = isTransition;
 class ArduinoMlAstReflection extends langium_1.AbstractAstReflection {
     getAllTypes() {
-        return ['Action', 'Actuator', 'App', 'Brick', 'CompositeCondition', 'Condition', 'LogicalOperator', 'NegationOperator', 'Sensor', 'Signal', 'SignalCondition', 'State', 'Transition'];
+        return ['Action', 'Actuator', 'App', 'Brick', 'CompositeCondition', 'Condition', 'ErrorState', 'LogicalOperator', 'NegationOperator', 'NormalState', 'Sensor', 'Signal', 'SignalCondition', 'State', 'Transition'];
     }
     computeIsSubtype(subtype, supertype) {
         switch (subtype) {
@@ -94,7 +104,8 @@ class ArduinoMlAstReflection extends langium_1.AbstractAstReflection {
     getReferenceType(refInfo) {
         const referenceId = `${refInfo.container.$type}:${refInfo.property}`;
         switch (referenceId) {
-            case 'Action:actuator': {
+            case 'Action:actuator':
+            case 'ErrorState:errorActuator': {
                 return exports.Actuator;
             }
             case 'App:initial':
@@ -120,9 +131,17 @@ class ArduinoMlAstReflection extends langium_1.AbstractAstReflection {
                     ]
                 };
             }
-            case 'State': {
+            case 'ErrorState': {
                 return {
-                    name: 'State',
+                    name: 'ErrorState',
+                    mandatory: [
+                        { name: 'transitions', type: 'array' }
+                    ]
+                };
+            }
+            case 'NormalState': {
+                return {
+                    name: 'NormalState',
                     mandatory: [
                         { name: 'actions', type: 'array' },
                         { name: 'transitions', type: 'array' }

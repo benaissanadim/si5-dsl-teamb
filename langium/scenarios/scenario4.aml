@@ -9,18 +9,21 @@ app foo initial state off {
   // Declaring states
   states
   firstPush {
+    NormalState
     led <= LOW
     buzzer <= HIGH
     button is HIGH => secondPush
   }
 
    secondPush {
+       NormalState
        led <= HIGH
        buzzer <= LOW
        button is HIGH => off
     }
 
     off {
+       NormalState
        led <= LOW
        buzzer <= LOW
        button is HIGH => firstPush

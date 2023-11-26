@@ -22,16 +22,29 @@ Actuator:
 Sensor :
 	{infer Sensor}
 	'Sensor'  name=ID ':' inputPin=INT;
-	
+
+
 State :
-	name=ID '{'
+	name=ID '{' body = ( NormalState | ErrorState ) '}';
+
+NormalState :
+		"NormalState" 
 		actions+=Action
 		(actions+=Action)* 
 		transitions+=Transition
 		(transitions+=Transition)*
+	;
 
-	'}';
 
+ErrorState :
+		"ErrorState"
+		"errorNumber" ':' errorNumber=INT
+		"pauseTime" ':' pauseTime=INT
+		"errorActuator" ':' errorActuator=[Actuator:ID]
+		transitions+=Transition
+		(transitions+=Transition)*
+	;
+	
 
 Action :
 	actuator=[Actuator:ID] '<=' value=Signal;
