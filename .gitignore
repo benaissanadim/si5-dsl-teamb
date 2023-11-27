@@ -1,6 +1,6 @@
 /yacc/arduinoml
 /yacc/*.o
 /yacc/arduino_syntax.h
-/langium/.vscode
-/langium/node_modules
+/external/langium/.vscode
+/external/langium/node_modules
 .idea
