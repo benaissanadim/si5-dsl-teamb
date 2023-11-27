@@ -340,7 +340,7 @@ const ArduinoMlGrammar = () => loadedArduinoMlGrammar !== null && loadedArduinoM
         "elements": [
           {
             "$type": "Keyword",
-            "value": "NormalState"
+            "value": "TransitionState"
           },
           {
             "$type": "Assignment",

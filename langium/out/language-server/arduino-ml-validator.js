@@ -21,7 +21,7 @@ class ArduinoMlValidator {
         if (app.name) {
             const firstChar = app.name.substring(0, 1);
             if (firstChar.toUpperCase() !== firstChar) {
-                accept("error", "App name should start with a capital.", {
+                accept("warning", "App name should start with a capital.", {
                     node: app,
                     property: "name",
                 });
