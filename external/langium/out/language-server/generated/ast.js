@@ -4,7 +4,7 @@
  * DO NOT EDIT MANUALLY!
  ******************************************************************************/
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.reflection = exports.ArduinoMlAstReflection = exports.isTransition = exports.Transition = exports.isState = exports.State = exports.isSignalCondition = exports.SignalCondition = exports.isSignal = exports.Signal = exports.isSensor = exports.Sensor = exports.isNormalState = exports.NormalState = exports.isNegationOperator = exports.NegationOperator = exports.isLogicalOperator = exports.LogicalOperator = exports.isErrorState = exports.ErrorState = exports.isCompositeCondition = exports.CompositeCondition = exports.isApp = exports.App = exports.isActuator = exports.Actuator = exports.isAction = exports.Action = exports.isCondition = exports.Condition = exports.isBrick = exports.Brick = void 0;
+exports.reflection = exports.ArduinoMlAstReflection = exports.isTemporalTransition = exports.TemporalTransition = exports.isTemporalState = exports.TemporalState = exports.isState = exports.State = exports.isSignalCondition = exports.SignalCondition = exports.isSignal = exports.Signal = exports.isSensor = exports.Sensor = exports.isPerpetualState = exports.PerpetualState = exports.isNegationOperator = exports.NegationOperator = exports.isLogicalOperator = exports.LogicalOperator = exports.isErrorState = exports.ErrorState = exports.isConditionalTransition = exports.ConditionalTransition = exports.isCompositeCondition = exports.CompositeCondition = exports.isApp = exports.App = exports.isActuator = exports.Actuator = exports.isAction = exports.Action = exports.isNormalState = exports.NormalState = exports.isCondition = exports.Condition = exports.isBrick = exports.Brick = void 0;
 /* eslint-disable */
 const langium_1 = require("langium");
 exports.Brick = 'Brick';
@@ -17,6 +17,11 @@ function isCondition(item) {
     return exports.reflection.isInstance(item, exports.Condition);
 }
 exports.isCondition = isCondition;
+exports.NormalState = 'NormalState';
+function isNormalState(item) {
+    return exports.reflection.isInstance(item, exports.NormalState);
+}
+exports.isNormalState = isNormalState;
 exports.Action = 'Action';
 function isAction(item) {
     return exports.reflection.isInstance(item, exports.Action);
@@ -37,6 +42,11 @@ function isCompositeCondition(item) {
     return exports.reflection.isInstance(item, exports.CompositeCondition);
 }
 exports.isCompositeCondition = isCompositeCondition;
+exports.ConditionalTransition = 'ConditionalTransition';
+function isConditionalTransition(item) {
+    return exports.reflection.isInstance(item, exports.ConditionalTransition);
+}
+exports.isConditionalTransition = isConditionalTransition;
 exports.ErrorState = 'ErrorState';
 function isErrorState(item) {
     return exports.reflection.isInstance(item, exports.ErrorState);
@@ -52,11 +62,11 @@ function isNegationOperator(item) {
     return exports.reflection.isInstance(item, exports.NegationOperator);
 }
 exports.isNegationOperator = isNegationOperator;
-exports.NormalState = 'NormalState';
-function isNormalState(item) {
-    return exports.reflection.isInstance(item, exports.NormalState);
+exports.PerpetualState = 'PerpetualState';
+function isPerpetualState(item) {
+    return exports.reflection.isInstance(item, exports.PerpetualState);
 }
-exports.isNormalState = isNormalState;
+exports.isPerpetualState = isPerpetualState;
 exports.Sensor = 'Sensor';
 function isSensor(item) {
     return exports.reflection.isInstance(item, exports.Sensor);
@@ -77,14 +87,19 @@ function isState(item) {
     return exports.reflection.isInstance(item, exports.State);
 }
 exports.isState = isState;
-exports.Transition = 'Transition';
-function isTransition(item) {
-    return exports.reflection.isInstance(item, exports.Transition);
+exports.TemporalState = 'TemporalState';
+function isTemporalState(item) {
+    return exports.reflection.isInstance(item, exports.TemporalState);
 }
-exports.isTransition = isTransition;
+exports.isTemporalState = isTemporalState;
+exports.TemporalTransition = 'TemporalTransition';
+function isTemporalTransition(item) {
+    return exports.reflection.isInstance(item, exports.TemporalTransition);
+}
+exports.isTemporalTransition = isTemporalTransition;
 class ArduinoMlAstReflection extends langium_1.AbstractAstReflection {
     getAllTypes() {
-        return ['Action', 'Actuator', 'App', 'Brick', 'CompositeCondition', 'Condition', 'ErrorState', 'LogicalOperator', 'NegationOperator', 'NormalState', 'Sensor', 'Signal', 'SignalCondition', 'State', 'Transition'];
+        return ['Action', 'Actuator', 'App', 'Brick', 'CompositeCondition', 'Condition', 'ConditionalTransition', 'ErrorState', 'LogicalOperator', 'NegationOperator', 'NormalState', 'PerpetualState', 'Sensor', 'Signal', 'SignalCondition', 'State', 'TemporalState', 'TemporalTransition'];
     }
     computeIsSubtype(subtype, supertype) {
         switch (subtype) {
@@ -95,6 +110,10 @@ class ArduinoMlAstReflection extends langium_1.AbstractAstReflection {
             case exports.CompositeCondition:
             case exports.SignalCondition: {
                 return this.isSubtype(exports.Condition, supertype);
+            }
+            case exports.PerpetualState:
+            case exports.TemporalState: {
+                return this.isSubtype(exports.NormalState, supertype);
             }
             default: {
                 return false;
@@ -109,7 +128,8 @@ class ArduinoMlAstReflection extends langium_1.AbstractAstReflection {
                 return exports.Actuator;
             }
             case 'App:initial':
-            case 'Transition:next': {
+            case 'ConditionalTransition:next':
+            case 'TemporalTransition:next': {
                 return exports.State;
             }
             case 'SignalCondition:sensor': {
@@ -135,16 +155,25 @@ class ArduinoMlAstReflection extends langium_1.AbstractAstReflection {
                 return {
                     name: 'ErrorState',
                     mandatory: [
-                        { name: 'transitions', type: 'array' }
+                        { name: 'conditionalTransitions', type: 'array' }
                     ]
                 };
             }
-            case 'NormalState': {
+            case 'PerpetualState': {
                 return {
-                    name: 'NormalState',
+                    name: 'PerpetualState',
                     mandatory: [
                         { name: 'actions', type: 'array' },
-                        { name: 'transitions', type: 'array' }
+                        { name: 'conditionalTransitions', type: 'array' }
+                    ]
+                };
+            }
+            case 'TemporalState': {
+                return {
+                    name: 'TemporalState',
+                    mandatory: [
+                        { name: 'actions', type: 'array' },
+                        { name: 'conditionalTransitions', type: 'array' }
                     ]
                 };
             }

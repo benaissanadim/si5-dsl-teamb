@@ -22,8 +22,16 @@ export function isCondition(item: unknown): item is Condition {
     return reflection.isInstance(item, Condition);
 }
 
+export type NormalState = PerpetualState | TemporalState;
+
+export const NormalState = 'NormalState';
+
+export function isNormalState(item: unknown): item is NormalState {
+    return reflection.isInstance(item, NormalState);
+}
+
 export interface Action extends AstNode {
-    readonly $container: NormalState;
+    readonly $container: PerpetualState | TemporalState;
     readonly $type: 'Action';
     actuator: Reference<Actuator>
     value: Signal
@@ -63,7 +71,7 @@ export function isApp(item: unknown): item is App {
 }
 
 export interface CompositeCondition extends AstNode {
-    readonly $container: CompositeCondition | Transition;
+    readonly $container: CompositeCondition | ConditionalTransition;
     readonly $type: 'CompositeCondition';
     left: Condition
     op: LogicalOperator
@@ -76,13 +84,26 @@ export function isCompositeCondition(item: unknown): item is CompositeCondition 
     return reflection.isInstance(item, CompositeCondition);
 }
 
+export interface ConditionalTransition extends AstNode {
+    readonly $container: ErrorState | PerpetualState | TemporalState;
+    readonly $type: 'ConditionalTransition';
+    condition: Condition
+    next: Reference<State>
+}
+
+export const ConditionalTransition = 'ConditionalTransition';
+
+export function isConditionalTransition(item: unknown): item is ConditionalTransition {
+    return reflection.isInstance(item, ConditionalTransition);
+}
+
 export interface ErrorState extends AstNode {
     readonly $container: State;
     readonly $type: 'ErrorState';
+    conditionalTransitions: Array<ConditionalTransition>
     errorActuator: Reference<Actuator>
     errorNumber: number
     pauseTime: number
-    transitions: Array<Transition>
 }
 
 export const ErrorState = 'ErrorState';
@@ -117,17 +138,17 @@ export function isNegationOperator(item: unknown): item is NegationOperator {
     return reflection.isInstance(item, NegationOperator);
 }
 
-export interface NormalState extends AstNode {
+export interface PerpetualState extends AstNode {
     readonly $container: State;
-    readonly $type: 'NormalState';
+    readonly $type: 'PerpetualState';
     actions: Array<Action>
-    transitions: Array<Transition>
+    conditionalTransitions: Array<ConditionalTransition>
 }
 
-export const NormalState = 'NormalState';
+export const PerpetualState = 'PerpetualState';
 
-export function isNormalState(item: unknown): item is NormalState {
-    return reflection.isInstance(item, NormalState);
+export function isPerpetualState(item: unknown): item is PerpetualState {
+    return reflection.isInstance(item, PerpetualState);
 }
 
 export interface Sensor extends AstNode {
@@ -156,7 +177,7 @@ export function isSignal(item: unknown): item is Signal {
 }
 
 export interface SignalCondition extends AstNode {
-    readonly $container: CompositeCondition | Transition;
+    readonly $container: CompositeCondition | ConditionalTransition;
     readonly $type: 'SignalCondition';
     ne?: NegationOperator
     sensor: Reference<Sensor>
@@ -182,17 +203,31 @@ export function isState(item: unknown): item is State {
     return reflection.isInstance(item, State);
 }
 
-export interface Transition extends AstNode {
-    readonly $container: ErrorState | NormalState;
-    readonly $type: 'Transition';
-    condition: Condition
-    next: Reference<State>
+export interface TemporalState extends AstNode {
+    readonly $container: State;
+    readonly $type: 'TemporalState';
+    actions: Array<Action>
+    conditionalTransitions: Array<ConditionalTransition>
+    temporalTransition: TemporalTransition
 }
 
-export const Transition = 'Transition';
+export const TemporalState = 'TemporalState';
 
-export function isTransition(item: unknown): item is Transition {
-    return reflection.isInstance(item, Transition);
+export function isTemporalState(item: unknown): item is TemporalState {
+    return reflection.isInstance(item, TemporalState);
+}
+
+export interface TemporalTransition extends AstNode {
+    readonly $container: TemporalState;
+    readonly $type: 'TemporalTransition';
+    duration: number
+    next?: Reference<State>
+}
+
+export const TemporalTransition = 'TemporalTransition';
+
+export function isTemporalTransition(item: unknown): item is TemporalTransition {
+    return reflection.isInstance(item, TemporalTransition);
 }
 
 export interface ArduinoMlAstType {
@@ -202,21 +237,24 @@ export interface ArduinoMlAstType {
     Brick: Brick
     CompositeCondition: CompositeCondition
     Condition: Condition
+    ConditionalTransition: ConditionalTransition
     ErrorState: ErrorState
     LogicalOperator: LogicalOperator
     NegationOperator: NegationOperator
     NormalState: NormalState
+    PerpetualState: PerpetualState
     Sensor: Sensor
     Signal: Signal
     SignalCondition: SignalCondition
     State: State
-    Transition: Transition
+    TemporalState: TemporalState
+    TemporalTransition: TemporalTransition
 }
 
 export class ArduinoMlAstReflection extends AbstractAstReflection {
 
     getAllTypes(): string[] {
-        return ['Action', 'Actuator', 'App', 'Brick', 'CompositeCondition', 'Condition', 'ErrorState', 'LogicalOperator', 'NegationOperator', 'NormalState', 'Sensor', 'Signal', 'SignalCondition', 'State', 'Transition'];
+        return ['Action', 'Actuator', 'App', 'Brick', 'CompositeCondition', 'Condition', 'ConditionalTransition', 'ErrorState', 'LogicalOperator', 'NegationOperator', 'NormalState', 'PerpetualState', 'Sensor', 'Signal', 'SignalCondition', 'State', 'TemporalState', 'TemporalTransition'];
     }
 
     protected override computeIsSubtype(subtype: string, supertype: string): boolean {
@@ -228,6 +266,10 @@ export class ArduinoMlAstReflection extends AbstractAstReflection {
             case CompositeCondition:
             case SignalCondition: {
                 return this.isSubtype(Condition, supertype);
+            }
+            case PerpetualState:
+            case TemporalState: {
+                return this.isSubtype(NormalState, supertype);
             }
             default: {
                 return false;
@@ -243,7 +285,8 @@ export class ArduinoMlAstReflection extends AbstractAstReflection {
                 return Actuator;
             }
             case 'App:initial':
-            case 'Transition:next': {
+            case 'ConditionalTransition:next':
+            case 'TemporalTransition:next': {
                 return State;
             }
             case 'SignalCondition:sensor': {
@@ -270,16 +313,25 @@ export class ArduinoMlAstReflection extends AbstractAstReflection {
                 return {
                     name: 'ErrorState',
                     mandatory: [
-                        { name: 'transitions', type: 'array' }
+                        { name: 'conditionalTransitions', type: 'array' }
                     ]
                 };
             }
-            case 'NormalState': {
+            case 'PerpetualState': {
                 return {
-                    name: 'NormalState',
+                    name: 'PerpetualState',
                     mandatory: [
                         { name: 'actions', type: 'array' },
-                        { name: 'transitions', type: 'array' }
+                        { name: 'conditionalTransitions', type: 'array' }
+                    ]
+                };
+            }
+            case 'TemporalState': {
+                return {
+                    name: 'TemporalState',
+                    mandatory: [
+                        { name: 'actions', type: 'array' },
+                        { name: 'conditionalTransitions', type: 'array' }
                     ]
                 };
             }

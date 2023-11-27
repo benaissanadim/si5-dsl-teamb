@@ -21,7 +21,7 @@ function generateInoFile(app, filePath, destination) {
 }
 exports.generateInoFile = generateInoFile;
 function compile(app, fileNode) {
-    var _a;
+    var _a, _b;
     fileNode.append(`
 //Wiring code generated from an ArduinoML model
 // Application name: ` +
@@ -64,7 +64,7 @@ long ` +
 	void loop() {
 			switch(currentState){`, langium_1.NL);
     for (const state of app.states) {
-        compileState(state, fileNode);
+        compileState(state, (_b = app.initial.ref) === null || _b === void 0 ? void 0 : _b.name, fileNode);
     }
     fileNode.append(`
 		}
@@ -87,129 +87,160 @@ function compileSensor(sensor, fileNode) {
         sensor.name +
         ` [Sensor]`);
 }
-function compileState(state, fileNode) {
+function compileState(state, initial, fileNode) {
     fileNode.append(`
 				case ` +
         state.name +
         `:`);
-    if (state.body.$type === "NormalState") {
+    if (state.body.$type === "PerpetualState")
         compileNormalState(state.body, fileNode);
-    }
-    else if (state.body.$type === "ErrorState") {
+    if (state.body.$type === "TemporalState")
+        compileTemporalState(state.body, initial, fileNode);
+    if (state.body.$type === "ErrorState")
         compileErrorState(state.body, fileNode);
-    }
     var bounceGuards = [];
-    for (const transition of state.body.transitions) {
+    for (const transition of state.body.conditionalTransitions) {
         fileNode.append(`
 					` + bounceGuardVars(transition.condition, bounceGuards));
     }
-    for (const transition of state.body.transitions) {
-        compileTransition(transition, fileNode);
+    if (state.body.$type !== "TemporalState") {
+        for (const transition of state.body.conditionalTransitions) {
+            compileConditionalTransition(transition, fileNode);
+        }
+        for (const transition of state.body.conditionalTransitions) {
+            compileConditionalTransition(transition, fileNode);
+        }
+        fileNode.append(`
+				  break;`);
     }
-    fileNode.append(`
-				break;`);
-}
-function compileNormalState(state, fileNode) {
-    for (const action of state.actions) {
-        compileAction(action, fileNode);
+    function compileNormalState(state, fileNode) {
+        for (const action of state.actions) {
+            compileAction(action, fileNode);
+        }
     }
-}
-function compileErrorState(state, fileNode) {
-    var _a, _b;
-    const actuator = state.errorActuator;
-    const blinkCount = state.errorNumber;
-    const pauseTime = state.pauseTime;
-    fileNode.append(`
+    function compileTemporalState(state, initial, fileNode) {
+        var _a;
+        compileNormalState(state, fileNode);
+        const temporalTransition = state.temporalTransition;
+        const next = temporalTransition.next
+            ? (_a = temporalTransition.next.ref) === null || _a === void 0 ? void 0 : _a.name
+            : initial;
+        fileNode.append(`               
+                    long startTime = millis();
+                    // Continue as long as the elapsed time is less than ` +
+            temporalTransition.duration +
+            ` milliseconds
+                    while (millis() - startTime < ` +
+            temporalTransition.duration +
+            `) {
+                        `);
+        for (const transition of state.conditionalTransitions) {
+            compileConditionalTransition(transition, fileNode);
+        }
+        fileNode.append(`   
+                      delayMicroseconds(100);
+                    }
+                    currentState = ` +
+            next +
+            `;`);
+    }
+    function compileErrorState(state, fileNode) {
+        var _a, _b;
+        const actuator = state.errorActuator;
+        const blinkCount = state.errorNumber;
+        const pauseTime = state.pauseTime;
+        fileNode.append(`
 					// Blink the error actuator
 					for (int i = 0; i < ` +
-        blinkCount +
-        `; i++) {
+            blinkCount +
+            `; i++) {
 						digitalWrite(` +
-        ((_a = actuator.ref) === null || _a === void 0 ? void 0 : _a.outputPin) +
-        `, HIGH); // turn the error actuator on
+            ((_a = actuator.ref) === null || _a === void 0 ? void 0 : _a.outputPin) +
+            `, HIGH); // turn the error actuator on
 						delay(500); // wait for 500ms
 						digitalWrite(` +
-        ((_b = actuator.ref) === null || _b === void 0 ? void 0 : _b.outputPin) +
-        `, LOW); // turn the error actuator off
+            ((_b = actuator.ref) === null || _b === void 0 ? void 0 : _b.outputPin) +
+            `, LOW); // turn the error actuator off
 						delay(500); // wait for 500ms
 					}
 					delay(` +
-        pauseTime +
-        ` * 1000);`);
-}
-function compileAction(action, fileNode) {
-    var _a;
-    fileNode.append(`
+            pauseTime +
+            ` * 1000);`);
+    }
+    function compileAction(action, fileNode) {
+        var _a;
+        fileNode.append(`
 					digitalWrite(` +
-        ((_a = action.actuator.ref) === null || _a === void 0 ? void 0 : _a.outputPin) +
-        `,` +
-        action.value.value +
-        `);`);
-}
-function compileCondition(condition) {
-    var _a, _b;
-    if (condition.$type === "SignalCondition") {
-        const negation = condition.ne ? "! " : "";
-        return `${negation}digitalRead(${(_a = condition.sensor.ref) === null || _a === void 0 ? void 0 : _a.name}.inputPin) == ${condition.value.value} && ${(_b = condition.sensor.ref) === null || _b === void 0 ? void 0 : _b.name}BounceGuard`;
+            ((_a = action.actuator.ref) === null || _a === void 0 ? void 0 : _a.outputPin) +
+            `,` +
+            action.value.value +
+            `);`);
     }
-    else if (condition.$type === "CompositeCondition") {
-        const leftCondition = compileCondition(condition.left);
-        const rightCondition = compileCondition(condition.right);
-        const logicalOperator = condition.op.AND
-            ? "&&"
-            : condition.op.OR
-                ? "||"
-                : condition.op.XOR
-                    ? "^"
-                    : "";
-        return `( ( ${leftCondition} ) ${logicalOperator} ( ${rightCondition} ) )`;
-    }
-    return "";
-}
-function bounceGuardVars(condition, bounceGuardsArray) {
-    var _a, _b, _c, _d;
-    if (condition.$type === "SignalCondition") {
-        if (!bounceGuardsArray.includes((_a = condition.sensor.ref) === null || _a === void 0 ? void 0 : _a.name)) {
-            bounceGuardsArray.push((_b = condition.sensor.ref) === null || _b === void 0 ? void 0 : _b.name);
-            return `${(_c = condition.sensor.ref) === null || _c === void 0 ? void 0 : _c.name}BounceGuard = millis() - ${(_d = condition.sensor.ref) === null || _d === void 0 ? void 0 : _d.name}LastDebounceTime > debounce;\n					`;
+    function compileCondition(condition) {
+        var _a, _b;
+        if (condition.$type === "SignalCondition") {
+            const negation = condition.ne ? "! " : "";
+            return `${negation}digitalRead(${(_a = condition.sensor.ref) === null || _a === void 0 ? void 0 : _a.name}.inputPin) == ${condition.value.value} && ${(_b = condition.sensor.ref) === null || _b === void 0 ? void 0 : _b.name}BounceGuard`;
         }
-        else
-            return "";
+        else if (condition.$type === "CompositeCondition") {
+            const leftCondition = compileCondition(condition.left);
+            const rightCondition = compileCondition(condition.right);
+            const logicalOperator = condition.op.AND
+                ? "&&"
+                : condition.op.OR
+                    ? "||"
+                    : condition.op.XOR
+                        ? "^"
+                        : "";
+            return `( ( ${leftCondition} ) ${logicalOperator} ( ${rightCondition} ) )`;
+        }
+        return "";
     }
-    else if (condition.$type === "CompositeCondition") {
-        const leftCondition = bounceGuardVars(condition.left, bounceGuardsArray);
-        const rightCondition = bounceGuardVars(condition.right, bounceGuardsArray);
-        return `${leftCondition}${rightCondition}`;
+    function bounceGuardVars(condition, bounceGuardsArray) {
+        var _a, _b, _c, _d;
+        if (condition.$type === "SignalCondition") {
+            if (!bounceGuardsArray.includes((_a = condition.sensor.ref) === null || _a === void 0 ? void 0 : _a.name)) {
+                bounceGuardsArray.push((_b = condition.sensor.ref) === null || _b === void 0 ? void 0 : _b.name);
+                return `${(_c = condition.sensor.ref) === null || _c === void 0 ? void 0 : _c.name}BounceGuard = millis() - ${(_d = condition.sensor.ref) === null || _d === void 0 ? void 0 : _d.name}LastDebounceTime > debounce;\n					`;
+            }
+            else
+                return "";
+        }
+        else if (condition.$type === "CompositeCondition") {
+            const leftCondition = bounceGuardVars(condition.left, bounceGuardsArray);
+            const rightCondition = bounceGuardVars(condition.right, bounceGuardsArray);
+            return `${leftCondition}${rightCondition}`;
+        }
+        return "";
     }
-    return "";
-}
-function lastBouncedTime(condition) {
-    var _a;
-    if (condition.$type === "SignalCondition") {
-        return `${(_a = condition.sensor.ref) === null || _a === void 0 ? void 0 : _a.name}LastDebounceTime = millis();\n						`;
+    function lastBouncedTime(condition) {
+        var _a;
+        if (condition.$type === "SignalCondition") {
+            return `${(_a = condition.sensor.ref) === null || _a === void 0 ? void 0 : _a.name}LastDebounceTime = millis();\n						`;
+        }
+        else if (condition.$type === "CompositeCondition") {
+            const leftCondition = lastBouncedTime(condition.left);
+            const rightCondition = lastBouncedTime(condition.right);
+            return `${leftCondition}${rightCondition}`;
+        }
+        return "";
     }
-    else if (condition.$type === "CompositeCondition") {
-        const leftCondition = lastBouncedTime(condition.left);
-        const rightCondition = lastBouncedTime(condition.right);
-        return `${leftCondition}${rightCondition}`;
-    }
-    return "";
-}
-function compileTransition(transition, fileNode) {
-    var _a;
-    var condition = transition.condition;
-    while (condition.$type === "CompositeCondition") {
-        condition = condition.left;
-    }
-    fileNode.append(`if ( ` +
-        compileCondition(transition.condition) +
-        ` ) {
+    function compileConditionalTransition(transition, fileNode) {
+        var _a;
+        var condition = transition.condition;
+        while (condition.$type === "CompositeCondition") {
+            condition = condition.left;
+        }
+        fileNode.append(`if ( ` +
+            compileCondition(transition.condition) +
+            ` ) {
 						` +
-        lastBouncedTime(transition.condition) +
-        `currentState = ` +
-        ((_a = transition.next.ref) === null || _a === void 0 ? void 0 : _a.name) +
-        `;
+            lastBouncedTime(transition.condition) +
+            `currentState = ` +
+            ((_a = transition.next.ref) === null || _a === void 0 ? void 0 : _a.name) +
+            `;
 					}
 					`);
+    }
 }
 //# sourceMappingURL=generator.js.map

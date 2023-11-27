@@ -29,11 +29,23 @@ State :
 
 NormalState :
 		"NormalState" 
+		(PerpetualState | TemporalState)
+	;
+
+PerpetualState :
 		actions+=Action
 		(actions+=Action)* 
-		transitions+=Transition
-		(transitions+=Transition)*
+		conditionalTransitions+=ConditionalTransition
+		(conditionalTransitions+=ConditionalTransition)*
 	;
+
+TemporalState :
+		actions+=Action
+		(actions+=Action)* 
+		temporalTransition=TemporalTransition
+		(conditionalTransitions+=ConditionalTransition)*
+		;
+
 
 
 ErrorState :
@@ -41,8 +53,8 @@ ErrorState :
 		"errorNumber" ':' errorNumber=INT
 		"pauseTime" ':' pauseTime=INT
 		"errorActuator" ':' errorActuator=[Actuator:ID]
-		transitions+=Transition
-		(transitions+=Transition)*
+		conditionalTransitions+=ConditionalTransition
+		(conditionalTransitions+=ConditionalTransition)*
 	;
 	
 
@@ -57,8 +69,12 @@ LogicalOperator:
 NegationOperator:
 	NOT = 'not';
 
-Transition :
+ConditionalTransition :
 	condition=Condition '=>' next=[State:ID];
+
+TemporalTransition:
+	'after' duration=INT 'ms' '=>' next=[State:ID] | 'runFor' duration=INT 'ms';
+
 
 Condition :
 	SignalCondition | CompositeCondition;

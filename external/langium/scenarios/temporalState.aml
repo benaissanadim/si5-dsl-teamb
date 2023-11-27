@@ -1,0 +1,30 @@
+
+app foo initial state off {
+  // Declaring bricks
+  bricks
+  Sensor button : 9
+  Sensor breakButton : 8
+  Actuator led  : 11
+  Actuator buzzer : 10
+
+  // Declaring states
+  states
+  on {
+    NormalState
+    led <= HIGH
+    after 1000 ms => buzz
+    breakButton is HIGH => off
+  }
+buzz {
+    NormalState
+    buzzer <= HIGH
+    runFor 1000 ms
+    breakButton is HIGH => off
+}
+
+  off {
+    NormalState
+    led <= LOW
+    button is HIGH => on
+  }
+}
