@@ -31,7 +31,7 @@ long breakButtonLastDebounceTime = 0;
                     long startTime = millis();
                     // Continue as long as the elapsed time is less than 1000 milliseconds
                     while (millis() - startTime < 1000) {
-                        if ( digitalRead(breakButton.inputPin) == HIGH && breakButtonBounceGuard ) {
+                        if ( digitalRead(8) == HIGH && breakButtonBounceGuard ) {
 						breakButtonLastDebounceTime = millis();
 						currentState = off;
 					}
@@ -46,7 +46,7 @@ long breakButtonLastDebounceTime = 0;
                     long startTime = millis();
                     // Continue as long as the elapsed time is less than 1000 milliseconds
                     while (millis() - startTime < 1000) {
-                        if ( digitalRead(breakButton.inputPin) == HIGH && breakButtonBounceGuard ) {
+                        if ( digitalRead(8) == HIGH && breakButtonBounceGuard ) {
 						breakButtonLastDebounceTime = millis();
 						currentState = off;
 					}
@@ -59,11 +59,11 @@ long breakButtonLastDebounceTime = 0;
 				case off:
 					digitalWrite(11,LOW);
 					buttonBounceGuard = millis() - buttonLastDebounceTime > debounce;
-					if ( digitalRead(button.inputPin) == HIGH && buttonBounceGuard ) {
+					if ( digitalRead(9) == HIGH && buttonBounceGuard ) {
 						buttonLastDebounceTime = millis();
 						currentState = on;
 					}
-					if ( digitalRead(button.inputPin) == HIGH && buttonBounceGuard ) {
+					if ( digitalRead(9) == HIGH && buttonBounceGuard ) {
 						buttonLastDebounceTime = millis();
 						currentState = on;
 					}

@@ -21,22 +21,30 @@ long buttonLastDebounceTime = 0;
 
 				case on:
 					digitalWrite(11,HIGH);
-		 			buttonBounceGuard = millis() - buttonLastDebounceTime > debounce;
-					if ( digitalRead(button.inputPin) == HIGH && buttonBounceGuard ) {
-					buttonLastDebounceTime = millis();
-					currentState = off;
+					buttonBounceGuard = millis() - buttonLastDebounceTime > debounce;
+					if ( digitalRead(9) == HIGH && buttonBounceGuard ) {
+						buttonLastDebounceTime = millis();
+						currentState = off;
 					}
-		
-				break;
+					if ( digitalRead(9) == HIGH && buttonBounceGuard ) {
+						buttonLastDebounceTime = millis();
+						currentState = off;
+					}
+					
+				  break;
 				case off:
 					digitalWrite(11,LOW);
-		 			buttonBounceGuard = millis() - buttonLastDebounceTime > debounce;
-					if ( digitalRead(button.inputPin) == HIGH && buttonBounceGuard ) {
-					buttonLastDebounceTime = millis();
-					currentState = on;
+					buttonBounceGuard = millis() - buttonLastDebounceTime > debounce;
+					if ( digitalRead(9) == HIGH && buttonBounceGuard ) {
+						buttonLastDebounceTime = millis();
+						currentState = on;
 					}
-		
-				break;
+					if ( digitalRead(9) == HIGH && buttonBounceGuard ) {
+						buttonLastDebounceTime = millis();
+						currentState = on;
+					}
+					
+				  break;
 		}
 	}
 	

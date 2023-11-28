@@ -180,7 +180,7 @@ function compileState(state, initial, fileNode) {
         var _a, _b;
         if (condition.$type === "SignalCondition") {
             const negation = condition.ne ? "! " : "";
-            return `${negation}digitalRead(${(_a = condition.sensor.ref) === null || _a === void 0 ? void 0 : _a.name}.inputPin) == ${condition.value.value} && ${(_b = condition.sensor.ref) === null || _b === void 0 ? void 0 : _b.name}BounceGuard`;
+            return `${negation}digitalRead(${(_a = condition.sensor.ref) === null || _a === void 0 ? void 0 : _a.inputPin}) == ${condition.value.value} && ${(_b = condition.sensor.ref) === null || _b === void 0 ? void 0 : _b.name}BounceGuard`;
         }
         else if (condition.$type === "CompositeCondition") {
             const leftCondition = compileCondition(condition.left);

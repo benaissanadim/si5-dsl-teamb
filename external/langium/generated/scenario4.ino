@@ -23,33 +23,45 @@ long buttonLastDebounceTime = 0;
 				case firstPush:
 					digitalWrite(11,LOW);
 					digitalWrite(12,HIGH);
-		 			buttonBounceGuard = millis() - buttonLastDebounceTime > debounce;
-					if ( digitalRead(button.inputPin) == HIGH && buttonBounceGuard ) {
-					buttonLastDebounceTime = millis();
-					currentState = secondPush;
+					buttonBounceGuard = millis() - buttonLastDebounceTime > debounce;
+					if ( digitalRead(9) == HIGH && buttonBounceGuard ) {
+						buttonLastDebounceTime = millis();
+						currentState = secondPush;
 					}
-		
-				break;
+					if ( digitalRead(9) == HIGH && buttonBounceGuard ) {
+						buttonLastDebounceTime = millis();
+						currentState = secondPush;
+					}
+					
+				  break;
 				case secondPush:
 					digitalWrite(11,HIGH);
 					digitalWrite(12,LOW);
-		 			buttonBounceGuard = millis() - buttonLastDebounceTime > debounce;
-					if ( digitalRead(button.inputPin) == HIGH && buttonBounceGuard ) {
-					buttonLastDebounceTime = millis();
-					currentState = off;
+					buttonBounceGuard = millis() - buttonLastDebounceTime > debounce;
+					if ( digitalRead(9) == HIGH && buttonBounceGuard ) {
+						buttonLastDebounceTime = millis();
+						currentState = off;
 					}
-		
-				break;
+					if ( digitalRead(9) == HIGH && buttonBounceGuard ) {
+						buttonLastDebounceTime = millis();
+						currentState = off;
+					}
+					
+				  break;
 				case off:
 					digitalWrite(11,LOW);
 					digitalWrite(12,LOW);
-		 			buttonBounceGuard = millis() - buttonLastDebounceTime > debounce;
-					if ( digitalRead(button.inputPin) == HIGH && buttonBounceGuard ) {
-					buttonLastDebounceTime = millis();
-					currentState = firstPush;
+					buttonBounceGuard = millis() - buttonLastDebounceTime > debounce;
+					if ( digitalRead(9) == HIGH && buttonBounceGuard ) {
+						buttonLastDebounceTime = millis();
+						currentState = firstPush;
 					}
-		
-				break;
+					if ( digitalRead(9) == HIGH && buttonBounceGuard ) {
+						buttonLastDebounceTime = millis();
+						currentState = firstPush;
+					}
+					
+				  break;
 		}
 	}
 	

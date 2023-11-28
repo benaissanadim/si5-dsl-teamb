@@ -243,7 +243,7 @@ function compileState(
   function compileCondition(condition: Condition): string {
     if (condition.$type === "SignalCondition") {
       const negation = condition.ne ? "! " : "";
-      return `${negation}digitalRead(${condition.sensor.ref?.name}.inputPin) == ${condition.value.value} && ${condition.sensor.ref?.name}BounceGuard`;
+      return `${negation}digitalRead(${condition.sensor.ref?.inputPin}) == ${condition.value.value} && ${condition.sensor.ref?.name}BounceGuard`;
     } else if (condition.$type === "CompositeCondition") {
       const leftCondition = compileCondition(condition.left);
       const rightCondition = compileCondition(condition.right);
