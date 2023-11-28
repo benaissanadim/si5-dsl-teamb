@@ -150,9 +150,6 @@ function compileState(
       compileConditionalTransition(transition, fileNode);
     }
 
-    for (const transition of state.body.conditionalTransitions) {
-      compileConditionalTransition(transition, fileNode);
-    }
     fileNode.append(`
 				  break;`);
   }
