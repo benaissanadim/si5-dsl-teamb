@@ -41,16 +41,6 @@ long button2LastDebounceTime = 0;
 						button2LastDebounceTime = millis();
 						currentState = error;
 					}
-					if ( ( ( digitalRead(9) == LOW && button1BounceGuard ) && ( digitalRead(10) == LOW && button2BounceGuard ) ) ) {
-						button1LastDebounceTime = millis();
-						button2LastDebounceTime = millis();
-						currentState = off;
-					}
-					if ( ( ( digitalRead(9) == HIGH && button1BounceGuard ) && ( digitalRead(10) == HIGH && button2BounceGuard ) ) ) {
-						button1LastDebounceTime = millis();
-						button2LastDebounceTime = millis();
-						currentState = error;
-					}
 					
 				  break;
 				case off:
@@ -59,16 +49,6 @@ long button2LastDebounceTime = 0;
 					button1BounceGuard = millis() - button1LastDebounceTime > debounce;
 					button2BounceGuard = millis() - button2LastDebounceTime > debounce;
 					
-					if ( ( ( digitalRead(9) == HIGH && button1BounceGuard ) ^ ( digitalRead(10) == HIGH && button2BounceGuard ) ) ) {
-						button1LastDebounceTime = millis();
-						button2LastDebounceTime = millis();
-						currentState = on;
-					}
-					if ( ( ( digitalRead(9) == HIGH && button1BounceGuard ) && ( digitalRead(10) == HIGH && button2BounceGuard ) ) ) {
-						button1LastDebounceTime = millis();
-						button2LastDebounceTime = millis();
-						currentState = error;
-					}
 					if ( ( ( digitalRead(9) == HIGH && button1BounceGuard ) ^ ( digitalRead(10) == HIGH && button2BounceGuard ) ) ) {
 						button1LastDebounceTime = millis();
 						button2LastDebounceTime = millis();
@@ -93,16 +73,6 @@ long button2LastDebounceTime = 0;
 					button1BounceGuard = millis() - button1LastDebounceTime > debounce;
 					button2BounceGuard = millis() - button2LastDebounceTime > debounce;
 					
-					if ( ( ( digitalRead(9) == LOW && button1BounceGuard ) && ( digitalRead(10) == LOW && button2BounceGuard ) ) ) {
-						button1LastDebounceTime = millis();
-						button2LastDebounceTime = millis();
-						currentState = off;
-					}
-					if ( ( ( digitalRead(9) == HIGH && button1BounceGuard ) ^ ( digitalRead(10) == HIGH && button2BounceGuard ) ) ) {
-						button1LastDebounceTime = millis();
-						button2LastDebounceTime = millis();
-						currentState = on;
-					}
 					if ( ( ( digitalRead(9) == LOW && button1BounceGuard ) && ( digitalRead(10) == LOW && button2BounceGuard ) ) ) {
 						button1LastDebounceTime = millis();
 						button2LastDebounceTime = millis();

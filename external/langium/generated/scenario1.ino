@@ -26,19 +26,11 @@ long buttonLastDebounceTime = 0;
 						buttonLastDebounceTime = millis();
 						currentState = off;
 					}
-					if ( digitalRead(9) == LOW && buttonBounceGuard ) {
-						buttonLastDebounceTime = millis();
-						currentState = off;
-					}
 					
 				  break;
 				case off:
 					digitalWrite(11,LOW);
 					buttonBounceGuard = millis() - buttonLastDebounceTime > debounce;
-					if ( digitalRead(9) == HIGH && buttonBounceGuard ) {
-						buttonLastDebounceTime = millis();
-						currentState = on;
-					}
 					if ( digitalRead(9) == HIGH && buttonBounceGuard ) {
 						buttonLastDebounceTime = millis();
 						currentState = on;
