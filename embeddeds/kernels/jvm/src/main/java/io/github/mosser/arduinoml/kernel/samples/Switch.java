@@ -21,6 +21,10 @@ public class Switch {
 		led.setName("LED");
 		led.setPin(12);
 
+		Actuator buzzer = new Actuator();
+		buzzer.setName("BUZZER");
+		buzzer.setPin(11);
+
 		// Declaring states
 		State on = new State();
 		on.setName("on");
@@ -33,13 +37,21 @@ public class Switch {
 		switchTheLightOn.setActuator(led);
 		switchTheLightOn.setValue(SIGNAL.HIGH);
 
+		Action switchTheBuzzerOn = new Action();
+		switchTheBuzzerOn.setActuator(buzzer);
+		switchTheBuzzerOn.setValue(SIGNAL.HIGH);
+
 		Action switchTheLightOff = new Action();
 		switchTheLightOff.setActuator(led);
 		switchTheLightOff.setValue(SIGNAL.LOW);
 
+		Action switchTheBuzzerOff = new Action();
+		switchTheBuzzerOff.setActuator(buzzer);
+		switchTheBuzzerOff.setValue(SIGNAL.LOW);
+
 		// Binding actions to states
-		on.setActions(Arrays.asList(switchTheLightOn));
-		off.setActions(Arrays.asList(switchTheLightOff));
+		on.setActions(Arrays.asList(switchTheLightOn,switchTheBuzzerOn));
+		off.setActions(Arrays.asList(switchTheLightOff, switchTheBuzzerOff));
 
 		// Creating transitions
 		Transition on2off = new Transition();
@@ -59,7 +71,7 @@ public class Switch {
 		// Building the App
 		App theSwitch = new App();
 		theSwitch.setName("Switch!");
-		theSwitch.setBricks(Arrays.asList(button, led ));
+		theSwitch.setBricks(Arrays.asList(button, led, buzzer ));
 		theSwitch.setStates(Arrays.asList(on, off));
 		theSwitch.setInitial(off);
 

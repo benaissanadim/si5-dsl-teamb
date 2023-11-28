@@ -86,6 +86,16 @@ public class ToWiring extends Visitor<StringBuffer> {
 	}
 
 	@Override
+	public void visit(BinaryCondition condition) {
+		//to be implemented
+	}
+
+	@Override
+	public void visit(UnaryCondition condition) {
+		//to be implemented
+	}
+
+	@Override
 	public void visit(State state) {
 		if(context.get("pass") == PASS.ONE){
 			w(state.getName());
