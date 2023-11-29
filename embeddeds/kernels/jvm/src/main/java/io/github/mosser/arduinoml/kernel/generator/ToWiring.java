@@ -123,8 +123,12 @@ public class ToWiring extends Visitor<StringBuffer> {
 				action.accept(this);
 			}
 
-			if (state.getTransition() != null) {
-				state.getTransition().accept(this);
+			if (state.getTransitions().size() == 0) {
+				w("\t\t\texit(0);\n");
+			}else {
+				for (Transition transition : state.getTransitions()) {
+					transition.accept(this);
+				}
 				w("\t\tbreak;\n");
 			}
 			return;

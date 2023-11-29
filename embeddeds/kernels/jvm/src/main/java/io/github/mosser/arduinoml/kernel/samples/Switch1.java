@@ -10,6 +10,7 @@ import io.github.mosser.arduinoml.kernel.structural.Actuator;
 import io.github.mosser.arduinoml.kernel.structural.SIGNAL;
 import io.github.mosser.arduinoml.kernel.structural.Sensor;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import io.github.mosser.arduinoml.kernel.behavioral.*;
@@ -18,6 +19,7 @@ import io.github.mosser.arduinoml.kernel.structural.OPERATOR;
 
 
 import java.io.IOException;
+import java.util.List;
 
 
 public class Switch1 {
@@ -108,8 +110,12 @@ public class Switch1 {
 		on2Off.setCondition(exp6);
 
 		// Binding transitions to states
-		off.setTransition(off2On);
-		on.setTransition(on2Off);
+		List<Transition> transitions = new ArrayList<>();
+		transitions.add(off2On);
+		off.setTransitions(transitions);
+		List<Transition> transitions1 = new ArrayList<>();
+		transitions1.add(on2Off);
+		on.setTransitions(transitions1);
 
 		// Building the App
 		App theDualCheckAlarm = new App();

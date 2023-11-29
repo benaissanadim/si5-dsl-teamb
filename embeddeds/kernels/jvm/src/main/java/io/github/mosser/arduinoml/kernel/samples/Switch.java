@@ -6,7 +6,9 @@ import io.github.mosser.arduinoml.kernel.generator.ToWiring;
 import io.github.mosser.arduinoml.kernel.generator.Visitor;
 import io.github.mosser.arduinoml.kernel.structural.*;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class Switch {
 
@@ -63,10 +65,14 @@ public class Switch {
 		off2on.setNext(on);
 		//off2on.setSensor(button);
 		//off2on.setValue(SIGNAL.HIGH);
-
+		List<Transition> transitions = new ArrayList<>();
+		transitions.add(on2off);
+		on.setTransitions(transitions);
 		// Binding transitions to states
-		on.setTransition(on2off);
-		off.setTransition(off2on);
+		List<Transition> transitions1 = new ArrayList<>();
+		transitions1.add(off2on);
+		off.setTransitions(transitions);
+
 
 		// Building the App
 		App theSwitch = new App();
