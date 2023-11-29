@@ -48,7 +48,7 @@ public class Switch1 {
 		onButtonPressed.setName("OneButtonPressed");
 
 		State twoButtonPressed = new State();
-		onButtonPressed.setName("TwoButtonPressed");
+		twoButtonPressed.setName("TwoButtonPressed");
 
 		State off = new State();
 		off.setName("off");
@@ -59,12 +59,12 @@ public class Switch1 {
 		triggerBuzzer.setValue(SIGNAL.HIGH);
 
 		Action triggerLed = new Action();
-		triggerLed.setActuator(buzzer);
+		triggerLed.setActuator(led);
 		triggerLed.setValue(SIGNAL.HIGH);
 
 		Action stopLed = new Action();
-		triggerLed.setActuator(buzzer);
-		triggerLed.setValue(SIGNAL.LOW);
+		stopLed.setActuator(led);
+		stopLed.setValue(SIGNAL.LOW);
 
 		Action stopSound = new Action();
 		stopSound.setActuator(buzzer);
@@ -123,12 +123,12 @@ public class Switch1 {
 		offTo1.setNext(onButtonPressed);
 
 		Transition twoToOFF = new Transition();
-		offTo2.setNext(off);
-		offTo2.setCondition(andH);
+		twoToOFF.setNext(off);
+		twoToOFF.setCondition(andH);
 
 		Transition twoTo1 = new Transition();
-		offTo1.setCondition(xor);
-		offTo1.setNext(onButtonPressed);
+		twoTo1.setCondition(xor);
+		twoTo1.setNext(onButtonPressed);
 
 		// Binding transitions to
 		List<Transition> transitionListOff = new ArrayList<>();
