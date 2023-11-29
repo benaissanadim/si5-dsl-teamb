@@ -30,6 +30,9 @@ public class State implements NamedElement, Visitable {
 	public void setActions(List<Action> actions) {
 		this.actions = actions;
 	}
+	public void addTransition(ConditionalTransition transition) {
+		this.transitions.add(transition);
+	}
 
 	public List<ConditionalTransition> getTransitions() {
 		return transitions;
