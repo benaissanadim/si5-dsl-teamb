@@ -126,7 +126,7 @@ public class ToWiring extends Visitor<StringBuffer> {
 			if (state.getTransitions().size() == 0) {
 				w("\t\t\texit(0);\n");
 			}else {
-				for (Transition transition : state.getTransitions()) {
+				for (ConditionalTransition transition : state.getTransitions()) {
 					transition.accept(this);
 				}
 				w("\t\tbreak;\n");
@@ -137,7 +137,7 @@ public class ToWiring extends Visitor<StringBuffer> {
 	}
 
 	@Override
-	public void visit(Transition transition) {
+	public void visit(ConditionalTransition transition) {
 		if(context.get("pass") == PASS.ONE) {
 			return;
 		}

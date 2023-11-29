@@ -4,7 +4,7 @@ import io.github.mosser.arduinoml.kernel.generator.Visitable;
 import io.github.mosser.arduinoml.kernel.generator.Visitor;
 import io.github.mosser.arduinoml.kernel.structural.*;
 
-public class Transition implements Visitable {
+public class Transition  {
 
 	private State next;
 	private Condition condition;
@@ -27,8 +27,4 @@ public class Transition implements Visitable {
 	}
 
 
-	@Override
-	public void accept(Visitor visitor) {
-		visitor.visit(this);
-	}
 }

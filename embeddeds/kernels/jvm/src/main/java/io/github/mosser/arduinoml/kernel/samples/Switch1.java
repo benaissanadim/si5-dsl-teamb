@@ -106,42 +106,42 @@ public class Switch1 {
 		xor.setOperator(OPERATOR.XOR);
 		// Creating transitions
 
-		Transition onButtonTo2Buttons = new Transition();
+		ConditionalTransition onButtonTo2Buttons = new ConditionalTransition();
 		onButtonTo2Buttons.setNext(twoButtonPressed);
 		onButtonTo2Buttons.setCondition(andH);
 
-		Transition onButtonToOff = new Transition();
+		ConditionalTransition onButtonToOff = new ConditionalTransition();
 		onButtonToOff.setNext(off);
 		onButtonToOff.setCondition(andL);
 
-		Transition offTo2 = new Transition();
+		ConditionalTransition offTo2 = new ConditionalTransition();
 		offTo2.setNext(twoButtonPressed);
 		offTo2.setCondition(andH);
 
-		Transition offTo1 = new Transition();
+		ConditionalTransition offTo1 = new ConditionalTransition();
 		offTo1.setCondition(xor);
 		offTo1.setNext(onButtonPressed);
 
-		Transition twoToOFF = new Transition();
+		ConditionalTransition twoToOFF = new ConditionalTransition();
 		twoToOFF.setNext(off);
 		twoToOFF.setCondition(andH);
 
-		Transition twoTo1 = new Transition();
+		ConditionalTransition twoTo1 = new ConditionalTransition();
 		twoTo1.setCondition(xor);
 		twoTo1.setNext(onButtonPressed);
 
 		// Binding transitions to
-		List<Transition> transitionListOff = new ArrayList<>();
+		List<ConditionalTransition> transitionListOff = new ArrayList<>();
 		transitionListOff.add(offTo1);
 		transitionListOff.add(offTo2);
 		off.setTransitions(transitionListOff);
 
-		List<Transition> transitionListOne = new ArrayList<>();
+		List<ConditionalTransition> transitionListOne = new ArrayList<>();
 		transitionListOne.add(onButtonTo2Buttons);
 		transitionListOne.add(onButtonToOff);
 		onButtonPressed.setTransitions(transitionListOne);
 
-		List<Transition> transitionListTwo = new ArrayList<>();
+		List<ConditionalTransition> transitionListTwo = new ArrayList<>();
 		transitionListOne.add(twoTo1);
 		transitionListOne.add(twoToOFF);
 		twoButtonPressed.setTransitions(transitionListTwo);

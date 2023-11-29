@@ -56,20 +56,20 @@ public class Switch {
 		off.setActions(Arrays.asList(switchTheLightOff, switchTheBuzzerOff));
 
 		// Creating transitions
-		Transition on2off = new Transition();
+		ConditionalTransition on2off = new ConditionalTransition();
 		on2off.setNext(off);
 		//on2off.setSensor(button);
 		//on2off.setValue(SIGNAL.HIGH);
 
-		Transition off2on = new Transition();
+		ConditionalTransition off2on = new ConditionalTransition();
 		off2on.setNext(on);
 		//off2on.setSensor(button);
 		//off2on.setValue(SIGNAL.HIGH);
-		List<Transition> transitions = new ArrayList<>();
+		List<ConditionalTransition> transitions = new ArrayList<>();
 		transitions.add(on2off);
 		on.setTransitions(transitions);
 		// Binding transitions to states
-		List<Transition> transitions1 = new ArrayList<>();
+		List<ConditionalTransition> transitions1 = new ArrayList<>();
 		transitions1.add(off2on);
 		off.setTransitions(transitions);
 
