@@ -129,15 +129,18 @@ public class ToWiring extends Visitor<StringBuffer> {
 			return;
 		}
 		if(context.get("pass") == PASS.TWO) {
-			String sensorName = transition.getSensor().getName();
-			w(String.format("\t\t\t%sBounceGuard = millis() - %sLastDebounceTime > debounce;\n",
-					sensorName, sensorName));
-			w(String.format("\t\t\tif( digitalRead(%d) == %s && %sBounceGuard) {\n",
-					transition.getSensor().getPin(), transition.getValue(), sensorName));
-			w(String.format("\t\t\t\t%sLastDebounceTime = millis();\n", sensorName));
-			w("\t\t\t\tcurrentState = " + transition.getNext().getName() + ";\n");
-			w("\t\t\t}\n");
-			return;
+			String transitionName = transition.getNext().getName();
+			w(String.format("\t\t\tbounceGuard = millis() - lastDebounceTime > debounce;\n"));
+			if(transition.getCondition() != null) {
+				w("\t\t\tif (");
+				transition.getCondition().accept(this);
+				w(String.format(" && bounceGuard) {\n", transitionName));
+				w(String.format("\t\t\t\tlastDebounceTime = millis();\n"));
+				w("\t\t\t\tstateExecuted = false;\n");
+				w("\t\t\t\tcurrentState = " + transition.getNext().getName() + ";\n");
+				w("\t\t\t}\n");
+			} else
+				w("\t\t\t\tcurrentState = " + transition.getNext().getName() + ";\n");
 		}
 	}
 

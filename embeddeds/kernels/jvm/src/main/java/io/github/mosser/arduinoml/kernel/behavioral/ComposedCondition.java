@@ -9,6 +9,10 @@ import java.util.List;
 public class ComposedCondition extends Condition {
 
     private List<Condition> conditions = new ArrayList<>();
+    private OPERATOR operator;
+    public void setOperator(OPERATOR operator) {
+        this.operator = operator;
+    }
 
     public void addCondition(Condition abstractCondition) {
         this.conditions.add(abstractCondition);

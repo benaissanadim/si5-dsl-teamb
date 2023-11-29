@@ -8,8 +8,7 @@ public class Transition implements Visitable {
 
 	private State next;
 	private Condition condition;
-	private Sensor sensor;
-	private SIGNAL value;
+
 
 	public void setCondition(Condition condition) {
 		this.condition = condition;
@@ -27,21 +26,6 @@ public class Transition implements Visitable {
 		this.next = next;
 	}
 
-	public Sensor getSensor() {
-		return sensor;
-	}
-
-	public void setSensor(Sensor sensor) {
-		this.sensor = sensor;
-	}
-
-	public SIGNAL getValue() {
-		return value;
-	}
-
-	public void setValue(SIGNAL value) {
-		this.value = value;
-	}
 
 	@Override
 	public void accept(Visitor visitor) {

@@ -12,18 +12,30 @@ import io.github.mosser.arduinoml.kernel.structural.Sensor;
 
 import java.util.Arrays;
 
+import io.github.mosser.arduinoml.kernel.behavioral.*;
+
+import io.github.mosser.arduinoml.kernel.structural.OPERATOR;
+
+
+import java.io.IOException;
+
+
 public class Switch1 {
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 
 		// Declaring elementary bricks
-		Sensor button = new Sensor();
-		button.setName("button");
-		button.setPin(9);
+		Sensor button1 = new Sensor();
+		button1.setName("button1");
+		button1.setPin(9);
 
-		Actuator led = new Actuator();
-		led.setName("LED");
-		led.setPin(12);
+		Sensor button3 = new Sensor();
+		button3.setName("button3");
+		button3.setPin(11);
+
+		Sensor button2 = new Sensor();
+		button2.setName("button2");
+		button2.setPin(10);
 
 		Actuator buzzer = new Actuator();
 		buzzer.setName("BUZZER");
@@ -36,56 +48,82 @@ public class Switch1 {
 		State off = new State();
 		off.setName("off");
 
+
 		// Creating actions
-		Action switchTheLightOn = new Action();
-		switchTheLightOn.setActuator(led);
-		switchTheLightOn.setValue(SIGNAL.HIGH);
+		Action triggerBuzzer = new Action();
+		triggerBuzzer.setActuator(buzzer);
+		triggerBuzzer.setValue(SIGNAL.HIGH);
 
-		Action switchTheBuzzerOn = new Action();
-		switchTheBuzzerOn.setActuator(buzzer);
-		switchTheBuzzerOn.setValue(SIGNAL.HIGH);
-
-		Action switchTheLightOff = new Action();
-		switchTheLightOff.setActuator(led);
-		switchTheLightOff.setValue(SIGNAL.LOW);
-
-		Action switchTheBuzzerOff = new Action();
-		switchTheBuzzerOff.setActuator(buzzer);
-		switchTheBuzzerOff.setValue(SIGNAL.LOW);
+		Action stopSound = new Action();
+		stopSound.setActuator(buzzer);
+		stopSound.setValue(SIGNAL.LOW);
 
 		// Binding actions to states
-		on.setActions(Arrays.asList(switchTheLightOn,switchTheBuzzerOn));
-		off.setActions(Arrays.asList(switchTheLightOff, switchTheBuzzerOff));
+		on.setActions(Arrays.asList(triggerBuzzer));
+		off.setActions(Arrays.asList(stopSound));
 
 		// Creating transitions
-		Transition on2off = new Transition();
-		on2off.setNext(off);
-		on2off.setSensor(button);
-		on2off.setValue(SIGNAL.HIGH);
+		Transition off2On = new Transition();
+		off2On.setNext(on);
+		SingularCondition exp1 = new SingularCondition();
+		exp1.setSensor(button1);
+		exp1.setSignal(SIGNAL.HIGH);
 
-		Transition off2on = new Transition();
-		off2on.setNext(on);
-		off2on.setSensor(button);
-		off2on.setValue(SIGNAL.HIGH);
+		SingularCondition exp2 = new SingularCondition();
+		exp2.setSensor(button2);
+		exp2.setSignal(SIGNAL.HIGH);
+
+		ComposedCondition exp3 = new ComposedCondition();
+		exp3.addCondition(exp1);
+		exp3.addCondition(exp2);
+		exp3.setOperator(OPERATOR.AND);
+
+		SingularCondition expr4 = new SingularCondition();
+		expr4.setSensor(button3);
+		expr4.setSignal(SIGNAL.HIGH);
+
+		ComposedCondition expr5 = new ComposedCondition();
+		expr5.addCondition(exp3);
+		expr5.addCondition(expr4);
+		expr5.setOperator(OPERATOR.OR);
+
+		off2On.setCondition(expr5);
+
+		Transition on2Off = new Transition();
+		on2Off.setNext(off);
+
+		SingularCondition exp4 = new SingularCondition();
+		exp4.setSensor(button1);
+		exp4.setSignal(SIGNAL.LOW);
+
+		SingularCondition exp5 = new SingularCondition();
+		exp5.setSensor(button2);
+		exp5.setSignal(SIGNAL.LOW);
+
+		ComposedCondition exp6 = new ComposedCondition();
+		exp6.addCondition(exp4);
+		exp6.addCondition(exp5);
+		exp6.setOperator(OPERATOR.OR);
+
+		on2Off.setCondition(exp6);
 
 		// Binding transitions to states
-		on.setTransition(on2off);
-		off.setTransition(off2on);
-
+		off.setTransition(off2On);
+		on.setTransition(on2Off);
 
 		// Building the App
-		App theSwitch = new App();
-		theSwitch.setName("Switch!");
-		theSwitch.setBricks(Arrays.asList(button, led, buzzer ));
-		theSwitch.setStates(Arrays.asList(on, off));
-		theSwitch.setInitial(off);
+		App theDualCheckAlarm = new App();
+		theDualCheckAlarm.setName("Dual-check alarm!");
+		theDualCheckAlarm.setBricks(Arrays.asList(button1, button2, buzzer));
+		theDualCheckAlarm.setStates(Arrays.asList(on, off));
+		theDualCheckAlarm.setInitial(off);
 
 		// Generating Code
 		Visitor codeGenerator = new ToWiring();
-		theSwitch.accept(codeGenerator);
+		theDualCheckAlarm.accept(codeGenerator);
 
-		// Printing the generated code on the console
 		System.out.println(codeGenerator.getResult());
+
 	}
 
 }
