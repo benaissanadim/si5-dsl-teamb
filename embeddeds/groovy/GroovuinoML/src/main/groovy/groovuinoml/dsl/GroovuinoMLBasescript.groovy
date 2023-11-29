@@ -1,5 +1,7 @@
 package main.groovy.groovuinoml.dsl
 
+import main.groovy.groovuinoml.dsl.GroovuinoMLBinding
+
 import java.util.List;
 
 import io.github.mosser.arduinoml.kernel.behavioral.Action
