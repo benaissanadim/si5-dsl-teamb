@@ -86,13 +86,20 @@ public class ToWiring extends Visitor<StringBuffer> {
 	}
 
 	@Override
-	public void visit(BinaryCondition condition) {
-		//to be implemented
+	public void visit(ComposedCondition conditions) {
+		w("(");
+		int conditionsCount = conditions.getConditions().size();
+		for (int i = 0; i < conditionsCount; i++) {
+			Condition condition = conditions.getConditions().get(i);
+			condition.accept(this);
+			if(i + 1 < conditionsCount)
+				w(" && ");
+		}
+		w(")");
 	}
-
 	@Override
-	public void visit(UnaryCondition condition) {
-		//to be implemented
+	public void visit(SingularCondition condition) {
+		w(String.format("digitalRead(%d) == %s", condition.getSensor().getPin(), condition.getSignal()));
 	}
 
 	@Override

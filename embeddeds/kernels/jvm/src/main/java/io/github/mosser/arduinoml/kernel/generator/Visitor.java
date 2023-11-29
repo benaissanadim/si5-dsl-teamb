@@ -18,9 +18,9 @@ public abstract class Visitor<T> {
 	public abstract void visit(Actuator actuator);
 	public abstract void visit(Sensor sensor);
 
-	public abstract void visit(BinaryCondition condition);
+	public abstract void visit(ComposedCondition condition);
 
-	public abstract void visit(UnaryCondition condition);
+	public abstract void visit(SingularCondition condition);
 
 
 

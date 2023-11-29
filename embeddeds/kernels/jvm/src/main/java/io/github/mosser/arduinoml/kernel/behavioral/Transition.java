@@ -7,9 +7,17 @@ import io.github.mosser.arduinoml.kernel.structural.*;
 public class Transition implements Visitable {
 
 	private State next;
+	private Condition condition;
 	private Sensor sensor;
 	private SIGNAL value;
 
+	public void setCondition(Condition condition) {
+		this.condition = condition;
+	}
+
+	public Condition getCondition() {
+		return condition;
+	}
 
 	public State getNext() {
 		return next;
