@@ -27,101 +27,130 @@ public class Switch1 {
 	public static void main(String[] args) throws IOException {
 
 		// Declaring elementary bricks
+		Actuator led = new Actuator();
+		led.setName("led");
+		led.setPin(11);
+
+		Actuator buzzer = new Actuator();
+		buzzer.setName("BUZZER");
+		buzzer.setPin(12);
+
 		Sensor button1 = new Sensor();
 		button1.setName("button1");
 		button1.setPin(9);
-
-		Sensor button3 = new Sensor();
-		button3.setName("button3");
-		button3.setPin(11);
 
 		Sensor button2 = new Sensor();
 		button2.setName("button2");
 		button2.setPin(10);
 
-		Actuator buzzer = new Actuator();
-		buzzer.setName("BUZZER");
-		buzzer.setPin(11);
-
 		// Declaring states
-		State on = new State();
-		on.setName("on");
+		State onButtonPressed = new State();
+		onButtonPressed.setName("OneButtonPressed");
+
+		State twoButtonPressed = new State();
+		onButtonPressed.setName("TwoButtonPressed");
 
 		State off = new State();
 		off.setName("off");
-
 
 		// Creating actions
 		Action triggerBuzzer = new Action();
 		triggerBuzzer.setActuator(buzzer);
 		triggerBuzzer.setValue(SIGNAL.HIGH);
 
+		Action triggerLed = new Action();
+		triggerLed.setActuator(buzzer);
+		triggerLed.setValue(SIGNAL.HIGH);
+
+		Action stopLed = new Action();
+		triggerLed.setActuator(buzzer);
+		triggerLed.setValue(SIGNAL.LOW);
+
 		Action stopSound = new Action();
 		stopSound.setActuator(buzzer);
 		stopSound.setValue(SIGNAL.LOW);
 
 		// Binding actions to states
-		on.setActions(Arrays.asList(triggerBuzzer));
-		off.setActions(Arrays.asList(stopSound));
+		twoButtonPressed.setActions(Arrays.asList(triggerBuzzer, triggerLed));
+		off.setActions(Arrays.asList(stopSound, stopLed));
+		onButtonPressed.setActions(Arrays.asList(triggerLed, stopSound));
+		SingularCondition exp1H = new SingularCondition();
+		exp1H.setSensor(button1);
+		exp1H.setSignal(SIGNAL.HIGH);
 
+		SingularCondition exp2H = new SingularCondition();
+		exp2H.setSensor(button2);
+		exp2H.setSignal(SIGNAL.HIGH);
+
+		ComposedCondition andH = new ComposedCondition();
+		andH.addCondition(exp1H);
+		andH.addCondition(exp2H);
+		andH.setOperator(OPERATOR.AND);
+
+		SingularCondition exp1L = new SingularCondition();
+		exp1L.setSensor(button1);
+		exp1L.setSignal(SIGNAL.LOW);
+
+		SingularCondition exp2L = new SingularCondition();
+		exp2L.setSensor(button2);
+		exp2L.setSignal(SIGNAL.LOW);
+
+		ComposedCondition andL = new ComposedCondition();
+		andL.addCondition(exp1L);
+		andL.addCondition(exp2L);
+		andL.setOperator(OPERATOR.AND);
+
+		ComposedCondition xor = new ComposedCondition();
+		xor.addCondition(exp1L);
+		xor.addCondition(exp2L);
+		xor.setOperator(OPERATOR.XOR);
 		// Creating transitions
-		Transition off2On = new Transition();
-		off2On.setNext(on);
-		SingularCondition exp1 = new SingularCondition();
-		exp1.setSensor(button1);
-		exp1.setSignal(SIGNAL.HIGH);
 
-		SingularCondition exp2 = new SingularCondition();
-		exp2.setSensor(button2);
-		exp2.setSignal(SIGNAL.HIGH);
+		Transition onButtonTo2Buttons = new Transition();
+		onButtonTo2Buttons.setNext(twoButtonPressed);
+		onButtonTo2Buttons.setCondition(andH);
 
-		ComposedCondition exp3 = new ComposedCondition();
-		exp3.addCondition(exp1);
-		exp3.addCondition(exp2);
-		exp3.setOperator(OPERATOR.AND);
+		Transition onButtonToOff = new Transition();
+		onButtonToOff.setNext(off);
+		onButtonToOff.setCondition(andL);
 
-		SingularCondition expr4 = new SingularCondition();
-		expr4.setSensor(button3);
-		expr4.setSignal(SIGNAL.HIGH);
+		Transition offTo2 = new Transition();
+		offTo2.setNext(twoButtonPressed);
+		offTo2.setCondition(andH);
 
-		ComposedCondition expr5 = new ComposedCondition();
-		expr5.addCondition(exp3);
-		expr5.addCondition(expr4);
-		expr5.setOperator(OPERATOR.OR);
+		Transition offTo1 = new Transition();
+		offTo1.setCondition(xor);
+		offTo1.setNext(onButtonPressed);
 
-		off2On.setCondition(expr5);
+		Transition twoToOFF = new Transition();
+		offTo2.setNext(off);
+		offTo2.setCondition(andH);
 
-		Transition on2Off = new Transition();
-		on2Off.setNext(off);
+		Transition twoTo1 = new Transition();
+		offTo1.setCondition(xor);
+		offTo1.setNext(onButtonPressed);
 
-		SingularCondition exp4 = new SingularCondition();
-		exp4.setSensor(button1);
-		exp4.setSignal(SIGNAL.LOW);
+		// Binding transitions to
+		List<Transition> transitionListOff = new ArrayList<>();
+		transitionListOff.add(offTo1);
+		transitionListOff.add(offTo2);
+		off.setTransitions(transitionListOff);
 
-		SingularCondition exp5 = new SingularCondition();
-		exp5.setSensor(button2);
-		exp5.setSignal(SIGNAL.LOW);
+		List<Transition> transitionListOne = new ArrayList<>();
+		transitionListOne.add(onButtonTo2Buttons);
+		transitionListOne.add(onButtonToOff);
+		onButtonPressed.setTransitions(transitionListOne);
 
-		ComposedCondition exp6 = new ComposedCondition();
-		exp6.addCondition(exp4);
-		exp6.addCondition(exp5);
-		exp6.setOperator(OPERATOR.OR);
-
-		on2Off.setCondition(exp6);
-
-		// Binding transitions to states
-		List<Transition> transitions = new ArrayList<>();
-		transitions.add(off2On);
-		off.setTransitions(transitions);
-		List<Transition> transitions1 = new ArrayList<>();
-		transitions1.add(on2Off);
-		on.setTransitions(transitions1);
+		List<Transition> transitionListTwo = new ArrayList<>();
+		transitionListOne.add(twoTo1);
+		transitionListOne.add(twoToOFF);
+		twoButtonPressed.setTransitions(transitionListTwo);
 
 		// Building the App
 		App theDualCheckAlarm = new App();
 		theDualCheckAlarm.setName("Dual-check alarm!");
 		theDualCheckAlarm.setBricks(Arrays.asList(button1, button2, buzzer));
-		theDualCheckAlarm.setStates(Arrays.asList(on, off));
+		theDualCheckAlarm.setStates(Arrays.asList(twoButtonPressed, off, onButtonPressed));
 		theDualCheckAlarm.setInitial(off);
 
 		// Generating Code
