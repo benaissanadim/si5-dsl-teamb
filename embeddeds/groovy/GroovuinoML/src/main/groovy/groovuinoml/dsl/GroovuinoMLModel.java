@@ -7,10 +7,7 @@ import io.github.mosser.arduinoml.kernel.App;
 import io.github.mosser.arduinoml.kernel.behavioral.*;
 import io.github.mosser.arduinoml.kernel.generator.ToWiring;
 import io.github.mosser.arduinoml.kernel.generator.Visitor;
-import io.github.mosser.arduinoml.kernel.structural.Actuator;
-import io.github.mosser.arduinoml.kernel.structural.Brick;
-import io.github.mosser.arduinoml.kernel.structural.SIGNAL;
-import io.github.mosser.arduinoml.kernel.structural.Sensor;
+import io.github.mosser.arduinoml.kernel.structural.*;
 
 public class GroovuinoMLModel {
 	private List<Brick> bricks;
@@ -55,7 +52,18 @@ public class GroovuinoMLModel {
 		transition.setNext(to);
 		from.addTransition(transition);
 	}
-	
+	public void createComposedCondition( List<Condition> conditions , OPERATOR operator) {
+		ComposedCondition composedCondition = new ComposedCondition();
+		composedCondition.setOperator(operator);
+		composedCondition.addConditions(conditions);
+
+	}
+
+	public void createSingularCondition(Sensor sensor, SIGNAL signal) {
+		SingularCondition condition = new SingularCondition();
+		condition.setSensor(sensor);
+		condition.setSignal(signal);
+	}
 	public void setInitialState(State state) {
 		this.initialState = state;
 	}
