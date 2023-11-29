@@ -22,7 +22,10 @@ public class ComposedCondition extends Condition {
         visitor.visit(this);
     }
 
+    public OPERATOR getOperator() {
+        return operator;
+    }
+
     public List<Condition> getConditions() {
         return conditions;
-    }
-}
+    }}

@@ -92,8 +92,17 @@ public class ToWiring extends Visitor<StringBuffer> {
 		for (int i = 0; i < conditionsCount; i++) {
 			Condition condition = conditions.getConditions().get(i);
 			condition.accept(this);
-			if(i + 1 < conditionsCount)
-				w(" && ");
+			if(i + 1 < conditionsCount){
+				if(conditions.getOperator() == OPERATOR.AND)
+					w(" && ");
+				else if(conditions.getOperator() == OPERATOR.OR)
+					w(" || ");
+				else if(conditions.getOperator() == OPERATOR.XOR)
+					w("^");
+				else if(conditions.getOperator() == OPERATOR.NO)
+					w("!");
+			}
+
 		}
 		w(")");
 	}
@@ -132,6 +141,7 @@ public class ToWiring extends Visitor<StringBuffer> {
 			String transitionName = transition.getNext().getName();
 			w(String.format("\t\t\tbounceGuard = millis() - lastDebounceTime > debounce;\n"));
 			if(transition.getCondition() != null) {
+
 				w("\t\t\tif (");
 				transition.getCondition().accept(this);
 				w(String.format(" && bounceGuard) {\n", transitionName));
