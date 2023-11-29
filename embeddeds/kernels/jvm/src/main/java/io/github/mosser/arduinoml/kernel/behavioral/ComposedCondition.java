@@ -21,6 +21,17 @@ public class ComposedCondition extends Condition {
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }
+    public void addConditions(List<Condition> abstractCondition) {
+        if(conditions.size()==2){
+          addCondition(abstractCondition.get(0));
+          addCondition(abstractCondition.get(1));
+        }else{
+            System.out.println("Error: ComposedCondition can only have 2 conditions");
+            System.exit(1);
+        }
+
+
+    }
 
     public OPERATOR getOperator() {
         return operator;

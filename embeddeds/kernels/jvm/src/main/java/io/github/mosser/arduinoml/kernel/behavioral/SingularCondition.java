@@ -21,6 +21,7 @@ public class SingularCondition extends Condition {
         this.signal = signal;
     }
 
+
     public SIGNAL getSignal() {
         return signal;
     }
