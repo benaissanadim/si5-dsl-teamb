@@ -20,14 +20,15 @@ public class Scenario2 {
 		Sensor button1 = new Sensor();
 		button1.setName("button1");
 		button1.setPin(9);
-
 		Sensor button2 = new Sensor();
 		button2.setName("button2");
 		button2.setPin(10);
-
+		Actuator led = new Actuator();
+		led.setName("LED");
+		led.setPin(11);
 		Actuator buzzer = new Actuator();
 		buzzer.setName("BUZZER");
-		buzzer.setPin(11);
+		buzzer.setPin(12);
 
 		// Declaring states
 		State on = new State();
