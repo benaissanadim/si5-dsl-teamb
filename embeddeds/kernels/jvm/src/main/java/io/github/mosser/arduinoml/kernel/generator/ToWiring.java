@@ -144,9 +144,9 @@ public class ToWiring extends Visitor<StringBuffer> {
 					w(String.format("\t\t\t%sBounceGuard = millis() - %sLastDebounceTime > debounce;\n",
 							sensorName, sensorName));
 
-					w(String.format("\t\t\tif (%sBounceGuard && ", sensorName));
+					w(String.format("\t\t\tif (%sBounceGuard && (", sensorName));
 					transition.getCondition().accept(this);
-					w(String.format(") {\n" +
+					w(String.format(") ) {\n" +
 							"\t\t\t\t%sLastDebounceTime = millis();\n" +
 							"\t\t\t\tcurrentState = %s;\n" +
 							"\t\t\t}\n", sensorName, transition.getNext().getName()));
@@ -158,29 +158,23 @@ public class ToWiring extends Visitor<StringBuffer> {
 					Condition left = binaryExpression.getConditions().get(0);
 					Condition right = binaryExpression.getConditions().get(1);
 
-					if(left instanceof SingularCondition && right instanceof SingularCondition){
-						String leftSensorName = ((SingularCondition) left).getSensor().getName();
-						w(String.format("\t\t\t%sBounceGuard = millis() - %sLastDebounceTime > debounce;\n",
-								leftSensorName, leftSensorName));
-
-						w(String.format("\t\t\tif (%sBounceGuard && ", leftSensorName));
-						transition.getCondition().accept(this);
-						w(String.format(") {\n" +
-								"\t\t\t\t%sLastDebounceTime = millis();\n" +
+					String leftSensorName = ((SingularCondition) left).getSensor().getName();
+					w(String.format("\t\t\t%sBounceGuard = millis() - %sLastDebounceTime > debounce;\n",
+							leftSensorName, leftSensorName));
+					String rightSensorName = ((SingularCondition) right).getSensor().getName();
+					w(String.format("\t\t\t%sBounceGuard = millis() - %sLastDebounceTime > debounce;\n",
+							rightSensorName, rightSensorName));
+					if(left instanceof SingularCondition && right instanceof SingularCondition ){
+						w(String.format("\t\t\tif ( (%sBounceGuard && ", leftSensorName));
+						((ComposedCondition) transition.getCondition()).getConditions().get(0).accept(this);
+						w(String.format(")\t&& (%sBounceGuard && ", rightSensorName));
+						((ComposedCondition) transition.getCondition()).getConditions().get(1).accept(this);
+						w(String.format(") ){\n\t\t\t\t%sLastDebounceTime = millis();\n", leftSensorName));
+						w(String.format("\t\t\t\t%sLastDebounceTime = millis();\n" +
 								"\t\t\t\tcurrentState = %s;\n" +
-								"\t\t\t}\n", leftSensorName, transition.getNext().getName()));
-
-						String sensorName = ((SingularCondition) right).getSensor().getName();
-						w(String.format("\t\t\t%sBounceGuard = millis() - %sLastDebounceTime > debounce;\n",
-								sensorName, sensorName));
-
-						w(String.format("\t\t\tif (%sBounceGuard && ", sensorName));
-						transition.getCondition().accept(this);
-						w(String.format(") {\n" +
-								"\t\t\t\t%sLastDebounceTime = millis();\n" +
-								"\t\t\t\tcurrentState = %s;\n" +
-								"\t\t\t}\n", sensorName, transition.getNext().getName()));
+								"\t\t\t}\n", rightSensorName, transition.getNext().getName()));
 					}
+
 				}
 			}
 			return;
