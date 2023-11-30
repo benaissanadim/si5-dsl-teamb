@@ -15,13 +15,17 @@ import io.github.mosser.arduinoml.kernel.structural.Sensor;
 public class GroovuinoMLModel {
 	private List<Brick> bricks;
 	private List<State> states;
+	private List<ConditionalTransition> transitions;
+
 	private State initialState;
+
 
 	private Binding binding;
 
 	public GroovuinoMLModel(Binding binding) {
 		this.bricks = new ArrayList<Brick>();
 		this.states = new ArrayList<State>();
+		this.transitions= new ArrayList<ConditionalTransition>();
 		this.binding = binding;
 	}
 
@@ -65,22 +69,41 @@ public class GroovuinoMLModel {
 	public void createCompositeTransition(State from, State to, List<Sensor> sensor, List<SIGNAL> value) {
 		ConditionalTransition transition = new ConditionalTransition();
 		System.out.println("sensor : " + sensor.size());
-
-
 		transition.setNext(to);
 		ComposedCondition composedCondition = new ComposedCondition();
-		for(int i =0 ; i< sensor.size() ; i++){
-			SingularCondition singularCondition = new SingularCondition();
-			singularCondition.setSensor(sensor.get(i));
-			singularCondition.setValue(value.get(i));
-			composedCondition.addCondition(singularCondition);
+		if(sensor.size() != value.size()){
+			System.out.println("Error : sensor and value size are not equal");
+			return;
 		}
+		if(sensor.size() == 0){
+			System.out.println("Error : sensor and value size are 0");
+			return;
+		}
+		if(sensor.size()>1){
+			for(int i =0 ; i< sensor.size() -1; i+=2){
+				SingularCondition singularCondition = new SingularCondition();
+				singularCondition.setSensor(sensor.get(i));
+				singularCondition.setValue(value.get(i));
+				SingularCondition singularCondition2 = new SingularCondition();
+				singularCondition.setSensor(sensor.get(i+1));
+				singularCondition.setValue(value.get(i+1));
+
+				composedCondition.addConditions(Arrays.asList(singularCondition,singularCondition2));
+			}
+		}else{
+			SingularCondition singularCondition = new SingularCondition();
+			singularCondition.setSensor(sensor.get(0));
+			singularCondition.setValue(value.get(0));
+			transition.setCondition(singularCondition);
+		}
+
 		transition.setCondition(composedCondition);
 		ArrayList<ConditionalTransition> transitions = new ArrayList<>();
 		transitions.add(transition);
 		from.setTransitions(transitions);
+		this.transitions.add(transition);
+		this.binding.setVariable("transition", transition);
 	}
-
 	public void setInitialState(State state) {
 		this.initialState = state;
 	}
@@ -91,6 +114,7 @@ public class GroovuinoMLModel {
 		app.setName(appName);
 		app.setBricks(this.bricks);
 		app.setStates(this.states);
+		app.setTransitions(this.transitions);
 		app.setInitial(this.initialState);
 		Visitor codeGenerator = new ToWiring();
 		app.accept(codeGenerator);

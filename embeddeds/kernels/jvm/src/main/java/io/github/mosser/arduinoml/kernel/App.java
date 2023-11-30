@@ -1,5 +1,6 @@
 package io.github.mosser.arduinoml.kernel;
 
+import io.github.mosser.arduinoml.kernel.behavioral.ConditionalTransition;
 import io.github.mosser.arduinoml.kernel.behavioral.State;
 import io.github.mosser.arduinoml.kernel.generator.Visitable;
 import io.github.mosser.arduinoml.kernel.generator.Visitor;
@@ -13,6 +14,7 @@ public class App implements NamedElement, Visitable {
 	private String name;
 	private List<Brick> bricks = new ArrayList<Brick>();
 	private List<State> states = new ArrayList<State>();
+	private  List<ConditionalTransition> transitions= new ArrayList<ConditionalTransition>();
 	private State initial;
 
 	@Override
@@ -31,6 +33,10 @@ public class App implements NamedElement, Visitable {
 
 	public void setBricks(List<Brick> bricks) {
 		this.bricks = bricks;
+	}
+
+	public void setTransitions(List<ConditionalTransition> transitions) {
+		this.transitions = transitions;
 	}
 
 	public List<State> getStates() {
