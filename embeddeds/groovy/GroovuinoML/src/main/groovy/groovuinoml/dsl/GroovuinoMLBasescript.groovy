@@ -47,25 +47,27 @@ abstract class GroovuinoMLBasescript extends Script {
 	
 	// from state1 to state2 when sensor becomes signal
 	def from(state1) {
-		[to: { state2 ->
+		def closure1
+		closure1={ state2 ->
+			List<Sensor> sensors = new ArrayList<Sensor>()
+			List<SIGNAL> signals = new ArrayList<SIGNAL>()
+			def actualState1 = state1 instanceof String ? (State)((GroovuinoMLBinding)this.getBinding()).getVariable(state1) : (State)state1
+			def actualState2 = state2 instanceof String ? (State)((GroovuinoMLBinding)this.getBinding()).getVariable(state2) : (State)state2
+			((GroovuinoMLBinding) this.getBinding()).getGroovuinoMLModel().createCompositeTransition(actualState1, actualState2, sensors, signals)
 			def closure
 			closure = { sensor ->
 				[becomes: { signal ->
-					def actualState1 = state1 instanceof String ? (State)((GroovuinoMLBinding)this.getBinding()).getVariable(state1) : (State)state1
-					def actualState2 = state2 instanceof String ? (State)((GroovuinoMLBinding)this.getBinding()).getVariable(state2) : (State)state2
 					def actualSensor = sensor instanceof String ? (Sensor)((GroovuinoMLBinding)this.getBinding()).getVariable(sensor) : (Sensor)sensor
 					def actualSignal = signal instanceof String ? (SIGNAL)((GroovuinoMLBinding)this.getBinding()).getVariable(signal) : (SIGNAL)signal
-					((GroovuinoMLBinding) this.getBinding()).getGroovuinoMLModel().createTransition(
-							actualState1,
-							actualState2,
-							actualSensor,
-							actualSignal
-					)
+					sensors.add(actualSensor)
+					signals.add(actualSignal)
 					[and: closure]
 				}]
 			}
 			[when: closure ]
-		}]
+		}
+		[to: closure1]
+
 	}
 
 	// export name

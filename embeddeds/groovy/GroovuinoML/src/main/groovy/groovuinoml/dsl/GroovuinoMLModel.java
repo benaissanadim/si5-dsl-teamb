@@ -51,19 +51,21 @@ public class GroovuinoMLModel {
 	}
 
 	public void createTransition(State from, State to, Sensor sensor, SIGNAL value) {
-		Transition transition = new Transition();
+		ConditionalTransition transition = new ConditionalTransition();
 		transition.setNext(to);
 		SingularCondition singularCondition = new SingularCondition();
 		singularCondition.setSensor(sensor);
 		singularCondition.setValue(value);
 		transition.setCondition(singularCondition);
-		ArrayList<Transition> transitions = new ArrayList<>();
+		ArrayList<ConditionalTransition> transitions = new ArrayList<>();
 		transitions.add(transition);
 		from.setTransitions(transitions);
 	}
 
 	public void createCompositeTransition(State from, State to, List<Sensor> sensor, List<SIGNAL> value) {
-		Transition transition = new Transition();
+		ConditionalTransition transition = new ConditionalTransition();
+		System.out.println("sensor : " + sensor.size());
+
 
 		transition.setNext(to);
 		ComposedCondition composedCondition = new ComposedCondition();
@@ -74,7 +76,7 @@ public class GroovuinoMLModel {
 			composedCondition.addCondition(singularCondition);
 		}
 		transition.setCondition(composedCondition);
-		ArrayList<Transition> transitions = new ArrayList<>();
+		ArrayList<ConditionalTransition> transitions = new ArrayList<>();
 		transitions.add(transition);
 		from.setTransitions(transitions);
 	}
