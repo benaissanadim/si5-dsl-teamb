@@ -39,7 +39,7 @@ long breakButtonLastDebounceTime = 0;
                       delayMicroseconds(100);
                     }
                     currentState = buzz;
-					breakButtonBounceGuard = millis() - breakButtonLastDebounceTime > debounce;
+					breakButtonBounceGuard = static_cast<long>(millis() - breakButtonLastDebounceTime) > debounce;
 					
 				  break;
 				case buzz:
@@ -55,12 +55,12 @@ long breakButtonLastDebounceTime = 0;
                       delayMicroseconds(100);
                     }
                     currentState = off;
-					breakButtonBounceGuard = millis() - breakButtonLastDebounceTime > debounce;
+					breakButtonBounceGuard = static_cast<long>(millis() - breakButtonLastDebounceTime) > debounce;
 					
 				  break;
 				case off:
 					digitalWrite(11,LOW);
-					buttonBounceGuard = millis() - buttonLastDebounceTime > debounce;
+					buttonBounceGuard = static_cast<long>(millis() - buttonLastDebounceTime) > debounce;
 					if ( digitalRead(9) == HIGH && buttonBounceGuard ) {
 						buttonLastDebounceTime = millis();
 						currentState = on;

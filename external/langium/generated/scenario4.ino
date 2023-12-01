@@ -23,7 +23,7 @@ long buttonLastDebounceTime = 0;
 				case firstPush:
 					digitalWrite(11,LOW);
 					digitalWrite(12,HIGH);
-					buttonBounceGuard = millis() - buttonLastDebounceTime > debounce;
+					buttonBounceGuard = static_cast<long>(millis() - buttonLastDebounceTime) > debounce;
 					if ( digitalRead(9) == HIGH && buttonBounceGuard ) {
 						buttonLastDebounceTime = millis();
 						currentState = secondPush;
@@ -33,7 +33,7 @@ long buttonLastDebounceTime = 0;
 				case secondPush:
 					digitalWrite(11,HIGH);
 					digitalWrite(12,LOW);
-					buttonBounceGuard = millis() - buttonLastDebounceTime > debounce;
+					buttonBounceGuard = static_cast<long>(millis() - buttonLastDebounceTime) > debounce;
 					if ( digitalRead(9) == HIGH && buttonBounceGuard ) {
 						buttonLastDebounceTime = millis();
 						currentState = off;
@@ -43,7 +43,7 @@ long buttonLastDebounceTime = 0;
 				case off:
 					digitalWrite(11,LOW);
 					digitalWrite(12,LOW);
-					buttonBounceGuard = millis() - buttonLastDebounceTime > debounce;
+					buttonBounceGuard = static_cast<long>(millis() - buttonLastDebounceTime) > debounce;
 					if ( digitalRead(9) == HIGH && buttonBounceGuard ) {
 						buttonLastDebounceTime = millis();
 						currentState = firstPush;
