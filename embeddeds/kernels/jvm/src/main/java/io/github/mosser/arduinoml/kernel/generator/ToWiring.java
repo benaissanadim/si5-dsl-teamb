@@ -52,12 +52,12 @@ public class ToWiring extends Visitor<StringBuffer> {
 		w("}\n");
 
 		w("\nvoid loop() {\n" +
-			"\tswitch(currentState){\n");
+				"\tswitch(currentState){\n");
 		for(State state: app.getStates()){
 			state.accept(this);
 		}
 		w("\t}\n" +
-			"}");
+				"}");
 	}
 
 	@Override
@@ -86,29 +86,25 @@ public class ToWiring extends Visitor<StringBuffer> {
 	}
 
 	@Override
-	public void visit(ComposedCondition conditions) {
-		w("(");
-		int conditionsCount = conditions.getConditions().size();
-		for (int i = 0; i < conditionsCount; i++) {
-			Condition condition = conditions.getConditions().get(i);
-			condition.accept(this);
-			if(i + 1 < conditionsCount){
-				if(conditions.getOperator() == OPERATOR.AND)
-					w(" && ");
-				else if(conditions.getOperator() == OPERATOR.OR)
-					w(" || ");
-				else if(conditions.getOperator() == OPERATOR.XOR)
-					w("^");
-				else if(conditions.getOperator() == OPERATOR.NO)
-					w("!");
-			}
-
+	public void visit(ComposedCondition condition) {
+		if(context.get("pass") == PASS.ONE) {
+			return;
 		}
-		w(")");
+		if(context.get("pass") == PASS.TWO) {
+			w(condition.getCondition());
+			return;
+		}
 	}
+
 	@Override
 	public void visit(SingularCondition condition) {
-		w(String.format("digitalRead(%d) == %s", condition.getSensor().getPin(), condition.getSignal()));
+		if(context.get("pass") == PASS.ONE) {
+			return;
+		}
+		if(context.get("pass") == PASS.TWO) {
+			w(condition.getCondition());
+			return;
+		}
 	}
 
 	@Override
@@ -122,41 +118,77 @@ public class ToWiring extends Visitor<StringBuffer> {
 			for (Action action : state.getActions()) {
 				action.accept(this);
 			}
-
 			if (state.getTransitions().size() == 0) {
 				w("\t\t\texit(0);\n");
 			}else {
-				for (Transition transition : state.getTransitions()) {
+				for (ConditionalTransition transition : state.getTransitions()) {
 					transition.accept(this);
 				}
 				w("\t\tbreak;\n");
 			}
+
 			return;
 		}
 
 	}
 
 	@Override
-	public void visit(Transition transition) {
+	public void visit(ConditionalTransition transition) {
 		if(context.get("pass") == PASS.ONE) {
 			return;
 		}
 		if(context.get("pass") == PASS.TWO) {
-			String transitionName = transition.getNext().getName();
-			w(String.format("\t\t\tbounceGuard = millis() - lastDebounceTime > debounce;\n"));
-			if(transition.getCondition() != null) {
+			if (transition.getCondition() != null){
+				if (transition.getCondition() instanceof SingularCondition) {
+					String sensorName = ((SingularCondition) transition.getCondition()).getSensor().getName();
+					w(String.format("\t\t\t%sBounceGuard = millis() - %sLastDebounceTime > debounce;\n",
+							sensorName, sensorName));
 
-				w("\t\t\tif (");
-				transition.getCondition().accept(this);
-				w(String.format(" && bounceGuard) {\n", transitionName));
-				w(String.format("\t\t\t\tlastDebounceTime = millis();\n"));
-				w("\t\t\t\tstateExecuted = false;\n");
-				w("\t\t\t\tcurrentState = " + transition.getNext().getName() + ";\n");
-				w("\t\t\t}\n");
-			} else
-				w("\t\t\t\tcurrentState = " + transition.getNext().getName() + ";\n");
+					w(String.format("\t\t\tif (%sBounceGuard && (", sensorName));
+					transition.getCondition().accept(this);
+					w(String.format(") ) {\n" +
+							"\t\t\t\t%sLastDebounceTime = millis();\n" +
+							"\t\t\t\tcurrentState = %s;\n" +
+							"\t\t\t}\n", sensorName, transition.getNext().getName()));
+
+				}
+				else if (transition.getCondition() instanceof ComposedCondition) {
+					//if each expression is a unary expression
+					ComposedCondition binaryExpression = (ComposedCondition) transition.getCondition();
+					Condition left = binaryExpression.getConditions().get(0);
+					Condition right = binaryExpression.getConditions().get(1);
+
+					String leftSensorName = ((SingularCondition) left).getSensor().getName();
+					w(String.format("\t\t\t%sBounceGuard = millis() - %sLastDebounceTime > debounce;\n",
+							leftSensorName, leftSensorName));
+					String rightSensorName = ((SingularCondition) right).getSensor().getName();
+					w(String.format("\t\t\t%sBounceGuard = millis() - %sLastDebounceTime > debounce;\n",
+							rightSensorName, rightSensorName));
+					if(left instanceof SingularCondition && right instanceof SingularCondition ){
+						w(String.format("\t\t\tif ( (%sBounceGuard && ", leftSensorName));
+						((ComposedCondition) transition.getCondition()).getConditions().get(0).accept(this);
+						w(String.format(")\t&& (%sBounceGuard && ", rightSensorName));
+						((ComposedCondition) transition.getCondition()).getConditions().get(1).accept(this);
+						w(String.format(") ){\n\t\t\t\t%sLastDebounceTime = millis();\n", leftSensorName));
+						w(String.format("\t\t\t\t%sLastDebounceTime = millis();\n" +
+								"\t\t\t\tcurrentState = %s;\n" +
+								"\t\t\t}\n", rightSensorName, transition.getNext().getName()));
+					}
+
+				}
+			}
+			return;
 		}
 	}
+
+	SingularCondition getBinaryDeepestUnaryExpression(ComposedCondition expression){
+		Condition ex = expression.getConditions().get(0);
+		if(ex instanceof SingularCondition){
+			return (SingularCondition) ex;
+		}
+		return getBinaryDeepestUnaryExpression((ComposedCondition) ex);
+	}
+
 
 	@Override
 	public void visit(Action action) {

@@ -1,5 +1,7 @@
 package main.groovy.groovuinoml.dsl
 
+import main.groovy.groovuinoml.dsl.GroovuinoMLBinding
+
 import java.util.List;
 
 import io.github.mosser.arduinoml.kernel.behavioral.Action
@@ -45,19 +47,33 @@ abstract class GroovuinoMLBasescript extends Script {
 	
 	// from state1 to state2 when sensor becomes signal
 	def from(state1) {
-		[to: { state2 -> 
-			[when: { sensor ->
-				[becomes: { signal -> 
-					((GroovuinoMLBinding) this.getBinding()).getGroovuinoMLModel().createTransition(
-						state1 instanceof String ? (State)((GroovuinoMLBinding)this.getBinding()).getVariable(state1) : (State)state1, 
-						state2 instanceof String ? (State)((GroovuinoMLBinding)this.getBinding()).getVariable(state2) : (State)state2, 
-						sensor instanceof String ? (Sensor)((GroovuinoMLBinding)this.getBinding()).getVariable(sensor) : (Sensor)sensor, 
-						signal instanceof String ? (SIGNAL)((GroovuinoMLBinding)this.getBinding()).getVariable(signal) : (SIGNAL)signal)
+		List<Sensor> sensors = new ArrayList<Sensor>()
+		List<SIGNAL> signals = new ArrayList<SIGNAL>()
+		State state =new State()
+		def actualState1 = state1 instanceof String ? (State)((GroovuinoMLBinding)this.getBinding()).getVariable(state1) : (State)state1
+		((GroovuinoMLBinding) this.getBinding()).getGroovuinoMLModel().createCompositeTransition(actualState1, state, sensors, signals)
+		def closure1
+		closure1={ state2 ->
+			def actualState2 = state2 instanceof String ? (State)((GroovuinoMLBinding)this.getBinding()).getVariable(state2) : (State)state2
+			state.name=actualState2.name
+			state.actions=actualState2.actions
+			state.transitions=actualState2.transitions
+			def closure
+			closure = { sensor ->
+				[becomes: { signal ->
+					def actualSensor = sensor instanceof String ? (Sensor)((GroovuinoMLBinding)this.getBinding()).getVariable(sensor) : (Sensor)sensor
+					def actualSignal = signal instanceof String ? (SIGNAL)((GroovuinoMLBinding)this.getBinding()).getVariable(signal) : (SIGNAL)signal
+					sensors.add(actualSensor)
+					signals.add(actualSignal)
+					[and: closure]
 				}]
-			}]
-		}]
+			}
+			[when: closure ]
+		}
+		[to: closure1]
+
 	}
-	
+
 	// export name
 	def export(String name) {
 		println(((GroovuinoMLBinding) this.getBinding()).getGroovuinoMLModel().generateCode(name).toString())
