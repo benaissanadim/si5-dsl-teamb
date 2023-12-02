@@ -73,7 +73,6 @@ public class GroovuinoMLModel {
 				composedCondition.addConditions(Arrays.asList(conditions.get(i),conditions.get(i+1)));
 				composedCondition.setOperator(OPERATOR.AND);
 				transition.setCondition(composedCondition);
-
 			}
 		}else{
 			if(conditions.size() == 1)

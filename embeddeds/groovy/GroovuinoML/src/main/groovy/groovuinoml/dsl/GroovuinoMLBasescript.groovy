@@ -52,8 +52,7 @@ abstract class GroovuinoMLBasescript extends Script {
 		List<SingularCondition> sensors = new ArrayList<SingularCondition>()
 		State state =new State()
 		def actualState1 = state1 instanceof String ? (State)((GroovuinoMLBinding)this.getBinding()).getVariable(state1) : (State)state1
-		def f =((GroovuinoMLBinding) this.getBinding()).getGroovuinoMLModel().createCompositeTransition(actualState1, state, sensors)
-		println "After createCompositeTransition - Sensors size: ${sensors.size()}}"
+		((GroovuinoMLBinding) this.getBinding()).getGroovuinoMLModel().createCompositeTransition(actualState1, state, sensors)
 
 		def closure1
 		closure1={ state2 ->

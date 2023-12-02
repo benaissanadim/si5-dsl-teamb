@@ -1,9 +1,7 @@
-sensor : 0
-After createCompositeTransition - Sensors size: 0}
+CONDITIONS : 0
 Taille de la liste : 1
 Taille de la liste : 2
-sensor : 0
-After createCompositeTransition - Sensors size: 0}
+CONDITIONS : 0
 Taille de la liste : 1
 Taille de la liste : 2
 // Wiring code generated from an ArduinoML model
