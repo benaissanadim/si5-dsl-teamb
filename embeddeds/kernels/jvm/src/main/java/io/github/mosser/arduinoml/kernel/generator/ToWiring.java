@@ -158,7 +158,7 @@ public class ToWiring extends Visitor<StringBuffer> {
 					w("\t\t\tif");
 					((ComposedCondition) transition.getCondition()).accept(this);
 					w(String.format("{\n\t\t\t\t%sLastDebounceTime = millis();\n",((SingularCondition)((ComposedCondition)transition.getCondition()).getConditions().get(0)).getSensor().getName()));
-					w(String.format("{\n\t\t\t\t%sLastDebounceTime = millis();\n",((SingularCondition)((ComposedCondition)transition.getCondition()).getConditions().get(1)).getSensor().getName()));
+					w(String.format("\t\t\t\t%sLastDebounceTime = millis();\n",((SingularCondition)((ComposedCondition)transition.getCondition()).getConditions().get(1)).getSensor().getName()));
 				}else if (transition.getCondition() instanceof SingularCondition) {
 					w(String.format("\t\t\t%sBounceGuard = millis() - lastDebounceTime > debounce;\n", ((SingularCondition) transition.getCondition()).getSensor().getName()));
 					w("\t\t\tif");
