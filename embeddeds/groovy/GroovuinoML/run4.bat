@@ -1,0 +1,1 @@
+java -jar target\dsl-groovy-1.0-jar-with-dependencies.jar scenarios\Switch4.groovy > generated\scenario4.ino
