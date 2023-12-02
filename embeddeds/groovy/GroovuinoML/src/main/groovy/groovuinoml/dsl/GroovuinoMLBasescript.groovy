@@ -1,5 +1,6 @@
 package main.groovy.groovuinoml.dsl
 
+import io.github.mosser.arduinoml.kernel.behavioral.SingularCondition
 import main.groovy.groovuinoml.dsl.GroovuinoMLBinding
 
 import java.util.List;
@@ -38,6 +39,7 @@ abstract class GroovuinoMLBasescript extends Script {
 			}]
 		}
 		[means: closure]
+
 	}
 	
 	// initial state
@@ -46,12 +48,13 @@ abstract class GroovuinoMLBasescript extends Script {
 	}
 	
 	// from state1 to state2 when sensor becomes signal
-	def from(state1) {
-		List<Sensor> sensors = new ArrayList<Sensor>()
-		List<SIGNAL> signals = new ArrayList<SIGNAL>()
+	def from(String state1) {
+		List<SingularCondition> sensors = new ArrayList<SingularCondition>()
 		State state =new State()
 		def actualState1 = state1 instanceof String ? (State)((GroovuinoMLBinding)this.getBinding()).getVariable(state1) : (State)state1
-		((GroovuinoMLBinding) this.getBinding()).getGroovuinoMLModel().createCompositeTransition(actualState1, state, sensors, signals)
+		def f =((GroovuinoMLBinding) this.getBinding()).getGroovuinoMLModel().createCompositeTransition(actualState1, state, sensors)
+		println "After createCompositeTransition - Sensors size: ${sensors.size()}}"
+
 		def closure1
 		closure1={ state2 ->
 			def actualState2 = state2 instanceof String ? (State)((GroovuinoMLBinding)this.getBinding()).getVariable(state2) : (State)state2
@@ -63,8 +66,11 @@ abstract class GroovuinoMLBasescript extends Script {
 				[becomes: { signal ->
 					def actualSensor = sensor instanceof String ? (Sensor)((GroovuinoMLBinding)this.getBinding()).getVariable(sensor) : (Sensor)sensor
 					def actualSignal = signal instanceof String ? (SIGNAL)((GroovuinoMLBinding)this.getBinding()).getVariable(signal) : (SIGNAL)signal
-					sensors.add(actualSensor)
-					signals.add(actualSignal)
+					SingularCondition singularCondition = new SingularCondition()
+					singularCondition.setSensor(actualSensor)
+					singularCondition.setValue(actualSignal)
+					sensors.add(singularCondition)
+					println "Taille de la liste : ${sensors.size()}"
 					[and: closure]
 				}]
 			}

@@ -7,10 +7,7 @@ import io.github.mosser.arduinoml.kernel.App;
 import io.github.mosser.arduinoml.kernel.behavioral.*;
 import io.github.mosser.arduinoml.kernel.generator.ToWiring;
 import io.github.mosser.arduinoml.kernel.generator.Visitor;
-import io.github.mosser.arduinoml.kernel.structural.Actuator;
-import io.github.mosser.arduinoml.kernel.structural.Brick;
-import io.github.mosser.arduinoml.kernel.structural.SIGNAL;
-import io.github.mosser.arduinoml.kernel.structural.Sensor;
+import io.github.mosser.arduinoml.kernel.structural.*;
 
 public class GroovuinoMLModel {
 	private List<Brick> bricks;
@@ -66,41 +63,26 @@ public class GroovuinoMLModel {
 		from.setTransitions(transitions);
 	}
 
-	public void createCompositeTransition(State from, State to, List<Sensor> sensor, List<SIGNAL> value) {
+	public void createCompositeTransition(State from, State to, List<SingularCondition> conditions) {
 		ConditionalTransition transition = new ConditionalTransition();
-		System.out.println("sensor : " + sensor.size());
+		System.out.println("CONDITIONS : " + conditions.size());
 		transition.setNext(to);
 		ComposedCondition composedCondition = new ComposedCondition();
-		if(sensor.size() != value.size()){
-			System.out.println("Error : sensor and value size are not equal");
-			return;
-		}
-		if(sensor.size() == 0){
-			System.out.println("Error : sensor and value size are 0");
-			return;
-		}
-		if(sensor.size()>1){
-			for(int i =0 ; i< sensor.size() -1; i+=2){
-				SingularCondition singularCondition = new SingularCondition();
-				singularCondition.setSensor(sensor.get(i));
-				singularCondition.setValue(value.get(i));
-				SingularCondition singularCondition2 = new SingularCondition();
-				singularCondition.setSensor(sensor.get(i+1));
-				singularCondition.setValue(value.get(i+1));
+		if(conditions.size()>1){
+			for(int i =0 ; i< conditions.size() -1; i+=2){
+				composedCondition.addConditions(Arrays.asList(conditions.get(i),conditions.get(i+1)));
+				composedCondition.setOperator(OPERATOR.AND);
+				transition.setCondition(composedCondition);
 
-				composedCondition.addConditions(Arrays.asList(singularCondition,singularCondition2));
 			}
 		}else{
-			SingularCondition singularCondition = new SingularCondition();
-			singularCondition.setSensor(sensor.get(0));
-			singularCondition.setValue(value.get(0));
-			transition.setCondition(singularCondition);
-		}
+			if(conditions.size() == 1)
+				transition.setCondition(conditions.get(0));
 
-		transition.setCondition(composedCondition);
-		ArrayList<ConditionalTransition> transitions = new ArrayList<>();
-		transitions.add(transition);
-		from.setTransitions(transitions);
+		}
+		ArrayList<ConditionalTransition> transitions1 = new ArrayList<>();
+		transitions1.add(transition);
+		from.setTransitions(transitions1);
 		this.transitions.add(transition);
 		this.binding.setVariable("transition", transition);
 	}
@@ -118,7 +100,6 @@ public class GroovuinoMLModel {
 		app.setInitial(this.initialState);
 		Visitor codeGenerator = new ToWiring();
 		app.accept(codeGenerator);
-
 		return codeGenerator.getResult();
 	}
 }
