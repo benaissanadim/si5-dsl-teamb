@@ -1,5 +1,10 @@
 package main.groovy.groovuinoml.dsl
 
+import io.github.mosser.arduinoml.kernel.behavioral.ComposedCondition
+import io.github.mosser.arduinoml.kernel.behavioral.Condition
+import io.github.mosser.arduinoml.kernel.behavioral.ConditionalTransition
+import io.github.mosser.arduinoml.kernel.behavioral.SingularCondition
+import io.github.mosser.arduinoml.kernel.structural.OPERATOR
 import main.groovy.groovuinoml.dsl.GroovuinoMLBinding
 
 import java.util.List;
@@ -38,28 +43,69 @@ abstract class GroovuinoMLBasescript extends Script {
 			}]
 		}
 		[means: closure]
+
 	}
 	
 	// initial state
 	def initial(state) {
 		((GroovuinoMLBinding) this.getBinding()).getGroovuinoMLModel().setInitialState(state instanceof String ? (State)((GroovuinoMLBinding)this.getBinding()).getVariable(state) : (State)state)
 	}
-	
 	// from state1 to state2 when sensor becomes signal
-	def from(state1) {
-		[to: { state2 -> 
-			[when: { sensor ->
-				[becomes: { signal -> 
-					((GroovuinoMLBinding) this.getBinding()).getGroovuinoMLModel().createTransition(
-						state1 instanceof String ? (State)((GroovuinoMLBinding)this.getBinding()).getVariable(state1) : (State)state1, 
-						state2 instanceof String ? (State)((GroovuinoMLBinding)this.getBinding()).getVariable(state2) : (State)state2, 
-						sensor instanceof String ? (Sensor)((GroovuinoMLBinding)this.getBinding()).getVariable(sensor) : (Sensor)sensor, 
-						signal instanceof String ? (SIGNAL)((GroovuinoMLBinding)this.getBinding()).getVariable(signal) : (SIGNAL)signal)
+	def from(String state1) {
+		ConditionalTransition transition = new ConditionalTransition()
+		State state =new State()
+		def actualState1 = state1 instanceof String ? (State)((GroovuinoMLBinding)this.getBinding()).getVariable(state1) : (State)state1
+		((GroovuinoMLBinding) this.getBinding()).getGroovuinoMLModel().createCompositeTransition(actualState1, state,transition)
+		def closure1
+		closure1={ state2 ->
+			State actualState2 = state2 instanceof String ? (State)((GroovuinoMLBinding)this.getBinding()).getVariable(state2) : (State)state2
+			state.setName(actualState2.getName())
+			ComposedCondition composedCondition = new ComposedCondition()
+			SingularCondition singularCondition1 = new SingularCondition()
+			def closure
+			closure = { sensor ->
+				[becomes: { signal ->
+					def actualSensor = sensor instanceof String ? (Sensor)((GroovuinoMLBinding)this.getBinding()).getVariable(sensor) : (Sensor)sensor
+					def actualSignal = signal instanceof String ? (SIGNAL)((GroovuinoMLBinding)this.getBinding()).getVariable(signal) : (SIGNAL)signal
+					singularCondition1.setSensor(actualSensor)
+					singularCondition1.setSignal(actualSignal)
+					transition.setCondition(singularCondition1)
+					def and
+					and= { sensor1  ->
+						[becomes: { signal1 ->
+							def actualSensor1 = sensor1 instanceof String ? (Sensor)((GroovuinoMLBinding)this.getBinding()).getVariable(sensor1) : (Sensor)sensor1
+							def actualSignal1 = signal1 instanceof String ? (SIGNAL)((GroovuinoMLBinding)this.getBinding()).getVariable(signal1) : (SIGNAL)signal1
+							SingularCondition singularCondition = new SingularCondition()
+							singularCondition.setSensor(actualSensor1)
+							singularCondition.setSignal(actualSignal1)
+							composedCondition.setOperator(OPERATOR.AND)
+							composedCondition.addConditions(Arrays.asList(singularCondition1,singularCondition))
+							transition.setCondition(composedCondition)
+						}
+						]
+					}
+					def or
+					or= { sensor1  ->
+						[becomes: { signal1 ->
+							def actualSensor1 = sensor1 instanceof String ? (Sensor)((GroovuinoMLBinding)this.getBinding()).getVariable(sensor1) : (Sensor)sensor1
+							def actualSignal1 = signal1 instanceof String ? (SIGNAL)((GroovuinoMLBinding)this.getBinding()).getVariable(signal1) : (SIGNAL)signal1
+							SingularCondition singularCondition = new SingularCondition()
+							singularCondition.setSensor(actualSensor1)
+							singularCondition.setSignal(actualSignal1)
+							composedCondition.setOperator(OPERATOR.OR)
+							composedCondition.addConditions(Arrays.asList(singularCondition1,singularCondition))
+							transition.setCondition(composedCondition)
+						}
+						]
+					}
+					[and: and , or: or]
 				}]
-			}]
-		}]
+			}
+			[when: closure ]
+		}
+		[ to: closure1]
 	}
-	
+
 	// export name
 	def export(String name) {
 		println(((GroovuinoMLBinding) this.getBinding()).getGroovuinoMLModel().generateCode(name).toString())

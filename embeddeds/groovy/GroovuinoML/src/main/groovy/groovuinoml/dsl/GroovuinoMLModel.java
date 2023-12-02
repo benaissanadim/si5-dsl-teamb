@@ -12,16 +12,20 @@ import io.github.mosser.arduinoml.kernel.structural.*;
 public class GroovuinoMLModel {
 	private List<Brick> bricks;
 	private List<State> states;
+	private List<ConditionalTransition> transitions;
+
 	private State initialState;
-	
+
+
 	private Binding binding;
-	
+
 	public GroovuinoMLModel(Binding binding) {
 		this.bricks = new ArrayList<Brick>();
 		this.states = new ArrayList<State>();
+		this.transitions= new ArrayList<ConditionalTransition>();
 		this.binding = binding;
 	}
-	
+
 	public void createSensor(String name, Integer pinNumber) {
 		Sensor sensor = new Sensor();
 		sensor.setName(name);
@@ -30,7 +34,7 @@ public class GroovuinoMLModel {
 		this.binding.setVariable(name, sensor);
 //		System.out.println("> sensor " + name + " on pin " + pinNumber);
 	}
-	
+
 	public void createActuator(String name, Integer pinNumber) {
 		Actuator actuator = new Actuator();
 		actuator.setName(name);
@@ -38,7 +42,7 @@ public class GroovuinoMLModel {
 		this.bricks.add(actuator);
 		this.binding.setVariable(name, actuator);
 	}
-	
+
 	public void createState(String name, List<Action> actions) {
 		State state = new State();
 		state.setName(name);
@@ -46,38 +50,41 @@ public class GroovuinoMLModel {
 		this.states.add(state);
 		this.binding.setVariable(name, state);
 	}
-	
-	public void createTransition(State from, State to, ConditionalTransition Conditionaltransition) {
+
+	public void createTransition(State from, State to, Sensor sensor, SIGNAL value) {
 		ConditionalTransition transition = new ConditionalTransition();
 		transition.setNext(to);
-		from.addTransition(transition);
+		SingularCondition singularCondition = new SingularCondition();
+		singularCondition.setSensor(sensor);
+		singularCondition.setSignal(value);
+		transition.setCondition(singularCondition);
+		ArrayList<ConditionalTransition> transitions = new ArrayList<>();
+		transitions.add(transition);
+		from.setTransitions(transitions);
 	}
-	public void createComposedCondition( List<Condition> conditions , OPERATOR operator) {
-		ComposedCondition composedCondition = new ComposedCondition();
-		composedCondition.setOperator(operator);
-		composedCondition.addConditions(conditions);
 
-	}
-
-	public void createSingularCondition(Sensor sensor, SIGNAL signal) {
-		SingularCondition condition = new SingularCondition();
-		condition.setSensor(sensor);
-		condition.setSignal(signal);
+	public void createCompositeTransition(State from, State to,ConditionalTransition transition) {
+		transition.setNext(to);
+		ArrayList<ConditionalTransition> transitions1 = new ArrayList<>();
+		transitions1.add(transition);
+		from.setTransitions(transitions1);
+		this.transitions.add(transition);
+		this.binding.setVariable("transition", transition);
 	}
 	public void setInitialState(State state) {
 		this.initialState = state;
 	}
-	
+
 	@SuppressWarnings("rawtypes")
 	public Object generateCode(String appName) {
 		App app = new App();
 		app.setName(appName);
 		app.setBricks(this.bricks);
 		app.setStates(this.states);
+
 		app.setInitial(this.initialState);
 		Visitor codeGenerator = new ToWiring();
 		app.accept(codeGenerator);
-		
 		return codeGenerator.getResult();
 	}
 }
