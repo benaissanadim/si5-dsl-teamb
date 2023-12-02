@@ -86,13 +86,26 @@ public class ToWiring extends Visitor<StringBuffer> {
 	}
 
 	@Override
-	public void visit(ComposedCondition condition) {
-		if(context.get("pass") == PASS.ONE) {
-			return;
-		}
-		if(context.get("pass") == PASS.TWO) {
-			w(condition.getCondition());
-			return;
+	public void visit(ComposedCondition conditions) {
+		w("(");
+		int conditionsCount = conditions.getConditions().size();
+		for (int i = 0; i < conditionsCount; i++) {
+			Condition condition = conditions.getConditions().get(i);
+			if (condition instanceof ComposedCondition)
+				((ComposedCondition) condition).accept(this);
+			else if (condition instanceof SingularCondition)
+				((SingularCondition) condition).accept(this);
+
+			if (i + 1 < conditionsCount) {
+				if (conditions.getOperator() == OPERATOR.AND)
+					w(" && ");
+				else if (conditions.getOperator() == OPERATOR.OR)
+					w(" || ");
+				else if (conditions.getOperator() == OPERATOR.XOR)
+					w("^");
+				else if (conditions.getOperator() == OPERATOR.NO)
+					w("!");
+			}
 		}
 	}
 
@@ -102,9 +115,10 @@ public class ToWiring extends Visitor<StringBuffer> {
 			return;
 		}
 		if(context.get("pass") == PASS.TWO) {
-			w(condition.getCondition());
-			return;
+			w(String.format(" ( %sBounceGuard && ", condition.getSensor().getName()));
+			w(String.format("digitalRead(%d) == %s )", condition.getSensor().getPin(), condition.getSignal()));
 		}
+
 	}
 
 	@Override
@@ -126,8 +140,6 @@ public class ToWiring extends Visitor<StringBuffer> {
 				}
 				w("\t\tbreak;\n");
 			}
-
-			return;
 		}
 
 	}
@@ -138,46 +150,25 @@ public class ToWiring extends Visitor<StringBuffer> {
 			return;
 		}
 		if(context.get("pass") == PASS.TWO) {
-			if (transition.getCondition() != null){
-				if (transition.getCondition() instanceof SingularCondition) {
-					String sensorName = ((SingularCondition) transition.getCondition()).getSensor().getName();
-					w(String.format("\t\t\t%sBounceGuard = millis() - %sLastDebounceTime > debounce;\n",
-							sensorName, sensorName));
-
-					w(String.format("\t\t\tif (%sBounceGuard && (", sensorName));
-					transition.getCondition().accept(this);
-					w(String.format(") ) {\n" +
-							"\t\t\t\t%sLastDebounceTime = millis();\n" +
-							"\t\t\t\tcurrentState = %s;\n" +
-							"\t\t\t}\n", sensorName, transition.getNext().getName()));
-
+			String transitionName = transition.getNext().getName();
+			if(transition.getCondition() != null) {
+				if (transition.getCondition() instanceof ComposedCondition) {
+					w(String.format("\t\t\t%sBounceGuard = millis() - lastDebounceTime > debounce;\n",((SingularCondition)((ComposedCondition)transition.getCondition()).getConditions().get(0)).getSensor().getName()));
+					w(String.format("\t\t\t%sBounceGuard = millis() - lastDebounceTime > debounce;\n",((SingularCondition)((ComposedCondition)transition.getCondition()).getConditions().get(1)).getSensor().getName()));
+					w("\t\t\tif");
+					((ComposedCondition) transition.getCondition()).accept(this);
+					w(String.format("{\n\t\t\t\t%sLastDebounceTime = millis();\n",((SingularCondition)((ComposedCondition)transition.getCondition()).getConditions().get(0)).getSensor().getName()));
+					w(String.format("{\n\t\t\t\t%sLastDebounceTime = millis();\n",((SingularCondition)((ComposedCondition)transition.getCondition()).getConditions().get(1)).getSensor().getName()));
+				}else if (transition.getCondition() instanceof SingularCondition) {
+					w(String.format("\t\t\t%sBounceGuard = millis() - lastDebounceTime > debounce;\n", ((SingularCondition) transition.getCondition()).getSensor().getName()));
+					w("\t\t\tif");
+					((SingularCondition) transition.getCondition()).accept(this);
+					w(String.format("{\n\t\t\t\t%sLastDebounceTime = millis();\n", ((SingularCondition) transition.getCondition()).getSensor().getName()));
 				}
-				else if (transition.getCondition() instanceof ComposedCondition) {
-					//if each expression is a unary expression
-					ComposedCondition binaryExpression = (ComposedCondition) transition.getCondition();
-					Condition left = binaryExpression.getConditions().get(0);
-					Condition right = binaryExpression.getConditions().get(1);
-
-					String leftSensorName = ((SingularCondition) left).getSensor().getName();
-					w(String.format("\t\t\t%sBounceGuard = millis() - %sLastDebounceTime > debounce;\n",
-							leftSensorName, leftSensorName));
-					String rightSensorName = ((SingularCondition) right).getSensor().getName();
-					w(String.format("\t\t\t%sBounceGuard = millis() - %sLastDebounceTime > debounce;\n",
-							rightSensorName, rightSensorName));
-					if(left instanceof SingularCondition && right instanceof SingularCondition ){
-						w(String.format("\t\t\tif ( (%sBounceGuard && ", leftSensorName));
-						((ComposedCondition) transition.getCondition()).getConditions().get(0).accept(this);
-						w(String.format(")\t&& (%sBounceGuard && ", rightSensorName));
-						((ComposedCondition) transition.getCondition()).getConditions().get(1).accept(this);
-						w(String.format(") ){\n\t\t\t\t%sLastDebounceTime = millis();\n", leftSensorName));
-						w(String.format("\t\t\t\t%sLastDebounceTime = millis();\n" +
-								"\t\t\t\tcurrentState = %s;\n" +
-								"\t\t\t}\n", rightSensorName, transition.getNext().getName()));
-					}
-
-				}
-			}
-			return;
+				w("\t\t\t\tcurrentState = " + transition.getNext().getName() + ";\n");
+				w("\t\t\t}\n");
+			} else
+				w("\t\t\t\tcurrentState = " + transition.getNext().getName() + ";\n");
 		}
 	}
 

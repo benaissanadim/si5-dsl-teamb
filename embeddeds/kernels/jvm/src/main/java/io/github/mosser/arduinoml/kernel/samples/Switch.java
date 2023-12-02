@@ -64,14 +64,14 @@ public class Switch {
 		t1.setNext(on);
 		SingularCondition exp1 = new SingularCondition();
 		exp1.setSensor(button);
-		exp1.setValue(SIGNAL.HIGH);
+		exp1.setSignal(SIGNAL.HIGH);
 		t1.setCondition(exp1);
 
 		ConditionalTransition t2 = new ConditionalTransition();
 		t2.setNext(off);
 		SingularCondition exp2 = new SingularCondition();
 		exp2.setSensor(button);
-		exp2.setValue(SIGNAL.LOW);
+		exp2.setSignal(SIGNAL.LOW);
 		t2.setCondition(exp2);
 
 		// Binding transitions to states

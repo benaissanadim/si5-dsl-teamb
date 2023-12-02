@@ -56,20 +56,20 @@ public class Scenario2 {
 
 		SingularCondition exp1 = new SingularCondition();
 		exp1.setSensor(button1);
-		exp1.setValue(SIGNAL.HIGH);
+		exp1.setSignal(SIGNAL.HIGH);
 		SingularCondition exp2 = new SingularCondition();
 		exp2.setSensor(button2);
-		exp2.setValue(SIGNAL.HIGH);
+		exp2.setSignal(SIGNAL.HIGH);
 		ComposedCondition exp3 = new ComposedCondition();
 		exp3.addConditions(Arrays.asList(exp1, exp2));
 		exp3.setOperator(OPERATOR.AND);
 
 		SingularCondition exp11 = new SingularCondition();
 		exp11.setSensor(button1);
-		exp11.setValue(SIGNAL.LOW);
+		exp11.setSignal(SIGNAL.LOW);
 		SingularCondition exp22 = new SingularCondition();
 		exp22.setSensor(button2);
-		exp22.setValue(SIGNAL.LOW);
+		exp22.setSignal(SIGNAL.LOW);
 		ComposedCondition expr33 = new ComposedCondition();
 		expr33.addConditions(Arrays.asList(exp11, exp22));
 		expr33.setOperator(OPERATOR.OR);

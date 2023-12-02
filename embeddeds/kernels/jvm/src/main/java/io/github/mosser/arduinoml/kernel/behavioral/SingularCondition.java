@@ -11,11 +11,11 @@ public class SingularCondition extends Condition {
 
     private Sensor sensor;
 
-    public SIGNAL getValue() {
+    public SIGNAL getSignal() {
         return value;
     }
 
-    public void setValue(SIGNAL value) {
+    public void setSignal(SIGNAL value) {
         this.value = value;
     }
 
