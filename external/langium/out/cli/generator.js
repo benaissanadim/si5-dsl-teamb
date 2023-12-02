@@ -199,7 +199,7 @@ function bounceGuardVars(condition, bounceGuardsArray) {
     if (condition.$type === "SignalCondition") {
         if (!bounceGuardsArray.includes((_a = condition.sensor.ref) === null || _a === void 0 ? void 0 : _a.name)) {
             bounceGuardsArray.push((_b = condition.sensor.ref) === null || _b === void 0 ? void 0 : _b.name);
-            return `${(_c = condition.sensor.ref) === null || _c === void 0 ? void 0 : _c.name}BounceGuard = millis() - ${(_d = condition.sensor.ref) === null || _d === void 0 ? void 0 : _d.name}LastDebounceTime > debounce;\n					`;
+            return `${(_c = condition.sensor.ref) === null || _c === void 0 ? void 0 : _c.name}BounceGuard = static_cast<long>(millis() - ${(_d = condition.sensor.ref) === null || _d === void 0 ? void 0 : _d.name}LastDebounceTime) > debounce;\n					`;
         }
         else
             return "";

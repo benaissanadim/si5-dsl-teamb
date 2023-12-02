@@ -7,7 +7,10 @@ import io.github.mosser.arduinoml.kernel.App;
 import io.github.mosser.arduinoml.kernel.behavioral.*;
 import io.github.mosser.arduinoml.kernel.generator.ToWiring;
 import io.github.mosser.arduinoml.kernel.generator.Visitor;
-import io.github.mosser.arduinoml.kernel.structural.*;
+import io.github.mosser.arduinoml.kernel.structural.Actuator;
+import io.github.mosser.arduinoml.kernel.structural.Brick;
+import io.github.mosser.arduinoml.kernel.structural.SIGNAL;
+import io.github.mosser.arduinoml.kernel.structural.Sensor;
 
 public class GroovuinoMLModel {
 	private List<Brick> bricks;
@@ -57,6 +60,7 @@ public class GroovuinoMLModel {
 		SingularCondition singularCondition = new SingularCondition();
 		singularCondition.setSensor(sensor);
 		singularCondition.setSignal(value);
+
 		transition.setCondition(singularCondition);
 		ArrayList<ConditionalTransition> transitions = new ArrayList<>();
 		transitions.add(transition);
@@ -68,9 +72,8 @@ public class GroovuinoMLModel {
 		ArrayList<ConditionalTransition> transitions1 = new ArrayList<>();
 		transitions1.add(transition);
 		from.setTransitions(transitions1);
-		this.transitions.add(transition);
-		this.binding.setVariable("transition", transition);
 	}
+
 	public void setInitialState(State state) {
 		this.initialState = state;
 	}
@@ -81,10 +84,10 @@ public class GroovuinoMLModel {
 		app.setName(appName);
 		app.setBricks(this.bricks);
 		app.setStates(this.states);
-
 		app.setInitial(this.initialState);
 		Visitor codeGenerator = new ToWiring();
 		app.accept(codeGenerator);
+
 		return codeGenerator.getResult();
 	}
 }

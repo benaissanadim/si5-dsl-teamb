@@ -22,14 +22,13 @@ public class ComposedCondition extends Condition {
         visitor.visit(this);
     }
     public void addConditions(List<Condition> abstractCondition) {
-        if(conditions.size()==2){
-          addCondition(abstractCondition.get(0));
-          addCondition(abstractCondition.get(1));
+        if(abstractCondition.size()==2){
+            addCondition(abstractCondition.get(0));
+            addCondition(abstractCondition.get(1));
         }else{
             System.out.println("Error: ComposedCondition can only have 2 conditions");
             System.exit(1);
         }
-
 
     }
 
@@ -39,4 +38,17 @@ public class ComposedCondition extends Condition {
 
     public List<Condition> getConditions() {
         return conditions;
-    }}
+    }
+
+    @Override
+    public String getCondition() {
+        switch (operator) {
+            case AND:
+                return String.format("(%s && %s)", conditions.get(0).getCondition(), conditions.get(1).getCondition());
+            case OR:
+                return String.format("(%s || %s)", conditions.get(0).getCondition(), conditions.get(1).getCondition());
+            default:
+                throw new IllegalArgumentException("Other operator are not yet supported");
+        }
+    }
+}

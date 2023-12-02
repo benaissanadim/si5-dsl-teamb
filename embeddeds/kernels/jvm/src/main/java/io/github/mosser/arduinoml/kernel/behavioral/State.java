@@ -10,7 +10,7 @@ import java.util.List;
 public class State implements NamedElement, Visitable {
 
 	private String name;
-	private List<Action> actions = new ArrayList<Action>();
+	private List<Action> actions = new ArrayList<>();
 	private List<ConditionalTransition> transitions = new ArrayList<>();
 
 	@Override

@@ -263,7 +263,7 @@ function bounceGuardVars(
   if (condition.$type === "SignalCondition") {
     if (!bounceGuardsArray.includes(condition.sensor.ref?.name)) {
       bounceGuardsArray.push(condition.sensor.ref?.name);
-      return `${condition.sensor.ref?.name}BounceGuard = millis() - ${condition.sensor.ref?.name}LastDebounceTime > debounce;\n					`;
+      return `${condition.sensor.ref?.name}BounceGuard = static_cast<long>(millis() - ${condition.sensor.ref?.name}LastDebounceTime) > debounce;\n					`;
     } else return "";
   } else if (condition.$type === "CompositeCondition") {
     const leftCondition = bounceGuardVars(condition.left, bounceGuardsArray);
