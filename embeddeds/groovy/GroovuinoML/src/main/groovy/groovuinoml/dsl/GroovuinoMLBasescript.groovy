@@ -163,7 +163,7 @@ abstract class GroovuinoMLBasescript extends Script {
 			count++
 			scriptBody()
 		} else {
-			println "Run method is disabl"
+			println "Run method is disabled"
 		}
 	}
 }
