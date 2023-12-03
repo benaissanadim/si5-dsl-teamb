@@ -54,7 +54,11 @@ public class ToWiring extends Visitor<StringBuffer> {
 		w("\nvoid loop() {\n" +
 				"\tswitch(currentState){\n");
 		for(State state: app.getStates()){
-			state.accept(this);
+
+			if(state instanceof ErrorState){
+				((ErrorState) state).accept(this);
+			}else
+				state.accept(this);
 		}
 		w("\t}\n" +
 				"}");
@@ -117,6 +121,32 @@ public class ToWiring extends Visitor<StringBuffer> {
 		if(context.get("pass") == PASS.TWO) {
 			w(String.format(" ( %sBounceGuard && ", condition.getSensor().getName()));
 			w(String.format("digitalRead(%d) == %s )", condition.getSensor().getPin(), condition.getSignal()));
+		}
+
+	}
+	@Override
+	public void visit(ErrorState state) {
+		if(context.get("pass") == PASS.ONE){
+			w(state.getName());
+			return;
+		}
+		if(context.get("pass") == PASS.TWO) {
+			w("\t\tcase " + state.getName() + ":\n");
+			w(String.format("\t\t\tfor (int i = 0; i < %d; i++) {\n", state.getErrorNumber()));
+			w(String.format("\t\t\t\tdigitalWrite(%d, HIGH);\n", state.getActuator().getPin()));
+			w("\t\t\t\tdelay(500);\n");
+			w(String.format("\t\t\t\tdigitalWrite(%d, LOW);\n", state.getActuator().getPin()));
+			w("\t\t\t\tdelay(500);\n");
+			w("\t\t\t}\n");
+			w(String.format("\t\t\tdelay(%d * 1000);\n", state.getPauseTime()));
+			if (state.getTransitions().size() == 0) {
+				w("\t\t\texit(0);\n");
+			}else {
+				for (ConditionalTransition transition : state.getTransitions()) {
+					transition.accept(this);
+				}
+				w("\t\tbreak;\n");
+			}
 		}
 
 	}
