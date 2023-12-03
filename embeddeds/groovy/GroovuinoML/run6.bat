@@ -1,1 +1,0 @@
-java -jar target\dsl-groovy-1.0-jar-with-dependencies.jar scenarios\Switch6.groovy > generated\scenario6.ino

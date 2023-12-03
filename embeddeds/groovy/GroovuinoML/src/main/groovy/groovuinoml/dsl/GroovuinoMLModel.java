@@ -59,7 +59,7 @@ public class GroovuinoMLModel {
 	}
 
 	public void createState(String name, List<Action> actions) {
-		State state = new State();
+		PerpetualState state = new PerpetualState();
 		state.setName(name);
 		state.setActions(actions);
 		this.states.add(state);

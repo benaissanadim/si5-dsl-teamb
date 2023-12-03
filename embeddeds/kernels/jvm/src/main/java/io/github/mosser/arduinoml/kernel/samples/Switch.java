@@ -1,10 +1,7 @@
 package io.github.mosser.arduinoml.kernel.samples;
 
 import io.github.mosser.arduinoml.kernel.App;
-import io.github.mosser.arduinoml.kernel.behavioral.Action;
-import io.github.mosser.arduinoml.kernel.behavioral.ConditionalTransition;
-import io.github.mosser.arduinoml.kernel.behavioral.SingularCondition;
-import io.github.mosser.arduinoml.kernel.behavioral.State;
+import io.github.mosser.arduinoml.kernel.behavioral.*;
 import io.github.mosser.arduinoml.kernel.generator.ToWiring;
 import io.github.mosser.arduinoml.kernel.generator.Visitor;
 import io.github.mosser.arduinoml.kernel.structural.Actuator;
@@ -32,10 +29,10 @@ public class Switch {
 		buzzer.setPin(6);
 
 		// Declaring states
-		State on = new State();
+		PerpetualState on = new PerpetualState();
 		on.setName("on");
 
-		State off = new State();
+		PerpetualState off = new PerpetualState();
 		off.setName("off");
 
 		// Creating actions

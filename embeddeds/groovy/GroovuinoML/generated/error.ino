@@ -23,25 +23,25 @@ void loop() {
 	switch(currentState){
 		case on:
 			digitalWrite(11,HIGH);
-			button1BounceGuard = millis() - lastDebounceTime > debounce;
-			button2BounceGuard = millis() - lastDebounceTime > debounce;
-			if( ( button1BounceGuard && digitalRead(9) == HIGH ) &&  ( button2BounceGuard && digitalRead(10) == HIGH ){
+			button1BounceGuard = millis() - button1LastDebounceTime > debounce;
+			button2BounceGuard = millis() - button2LastDebounceTime > debounce;
+			if( ( button1BounceGuard && digitalRead(9) == HIGH ) &&  ( button2BounceGuard && digitalRead(10) == HIGH )){
 				button1LastDebounceTime = millis();
 				button2LastDebounceTime = millis();
 				currentState = error;
 			}
-		break;
+			break;
 		case off:
 			digitalWrite(11,LOW);
 			digitalWrite(12,LOW);
-			button1BounceGuard = millis() - lastDebounceTime > debounce;
-			button2BounceGuard = millis() - lastDebounceTime > debounce;
-			if( ( button1BounceGuard && digitalRead(9) == HIGH ) &&  ( button2BounceGuard && digitalRead(10) == HIGH ){
+			button1BounceGuard = millis() - button1LastDebounceTime > debounce;
+			button2BounceGuard = millis() - button2LastDebounceTime > debounce;
+			if( ( button1BounceGuard && digitalRead(9) == HIGH ) &&  ( button2BounceGuard && digitalRead(10) == HIGH )){
 				button1LastDebounceTime = millis();
 				button2LastDebounceTime = millis();
 				currentState = error;
 			}
-		break;
+			break;
 		case error:
 			for (int i = 0; i < 3; i++) {
 				digitalWrite(12, HIGH);
@@ -50,9 +50,9 @@ void loop() {
 				delay(500);
 			}
 			delay(3 * 1000);
-			button1BounceGuard = millis() - lastDebounceTime > debounce;
-			button2BounceGuard = millis() - lastDebounceTime > debounce;
-			if( ( button1BounceGuard && digitalRead(9) == HIGH )^ ( button2BounceGuard && digitalRead(10) == HIGH ){
+			button1BounceGuard = millis() - button1LastDebounceTime > debounce;
+			button2BounceGuard = millis() - button2LastDebounceTime > debounce;
+			if( ( button1BounceGuard && digitalRead(9) == HIGH )^ ( button2BounceGuard && digitalRead(10) == HIGH )){
 				button1LastDebounceTime = millis();
 				button2LastDebounceTime = millis();
 				currentState = on;

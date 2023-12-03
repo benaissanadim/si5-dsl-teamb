@@ -1,3 +1,4 @@
+fromState: on
 // Wiring code generated from an ArduinoML model
 // Application name: Switch!
 
@@ -18,16 +19,14 @@ void loop() {
 	switch(currentState){
 		case on:
 			digitalWrite(11,HIGH);
-			buttonBounceGuard = millis() - buttonLastDebounceTime > debounce;
-			if ( buttonBounceGuard && digitalRead(9) == HIGH ){
-				buttonLastDebounceTime = millis();
+			long startTime = millis();
+			if(millis() - startTime > 1000){
 				currentState = off;
 			}
-			break;
 		case off:
 			digitalWrite(11,LOW);
 			buttonBounceGuard = millis() - buttonLastDebounceTime > debounce;
-			if ( buttonBounceGuard && digitalRead(9) == HIGH ){
+			if ( buttonBounceGuard && digitalRead(9) == LOW ){
 				buttonLastDebounceTime = millis();
 				currentState = on;
 			}

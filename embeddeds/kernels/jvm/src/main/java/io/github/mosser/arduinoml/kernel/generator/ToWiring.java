@@ -111,6 +111,8 @@ public class ToWiring extends Visitor<StringBuffer> {
 					w("!");
 			}
 		}
+		w(")");
+
 	}
 
 	@Override
@@ -158,30 +160,34 @@ public class ToWiring extends Visitor<StringBuffer> {
 			return;
 		}
 		if(context.get("pass") == PASS.TWO) {
-			w("\t\tcase " + state.getName() + ":\n");
-			for (Action action : state.getActions()) {
-				action.accept(this);
-			}
-			if(state instanceof TemporalState){
-				System.out.println("temporal state");
-				System.out.println(state.getName());
-				System.out.println(((TemporalState) state).getDuration());
-				System.out.println(((TemporalState) state).getTransition());
-				TemporalState temporalState = (TemporalState) state;
-				w(String.format("\t\t\tlong startTime = millis();\n"));
-				w(String.format("\t\t\tif(millis() - startTime > %d){\n",temporalState.getDuration()));
-				if(temporalState.getTransition() != null){
-					temporalState.getTransition().accept(this);
+			if(state instanceof NormalState) {
+				NormalState normalState = (NormalState) state;
+
+				w("\t\tcase " + normalState.getName() + ":\n");
+				for (Action action : normalState.getActions()) {
+					action.accept(this);
 				}
-			}else{
-				if (state.getTransitions().size() == 0) {
-					w("\t\t\texit(0);\n");
-				}else {
-					for (ConditionalTransition transition : state.getTransitions()) {
-						transition.accept(this);
+				if (state instanceof TemporalState) {
+					TemporalState temporalState = (TemporalState) state;
+					w(String.format("\t\t\tlong startTime = millis();\n"));
+					w(String.format("\t\t\tif(millis() - startTime > %d){\n", temporalState.getDuration()));
+					if (temporalState.getTransition() != null) {
+						temporalState.getTransition().accept(this);
 					}
-					w("\t\tbreak;\n");
+					if (state.getTransitions().size() == 0) {
+						w("\t\t\tbreak;\n");
+					}
+				} else {
+					if (state.getTransitions().size() == 0) {
+						w("\t\t\texit(0);\n");
+					} else {
+						for (ConditionalTransition transition : state.getTransitions()) {
+							transition.accept(this);
+						}
+						w("\t\t\tbreak;\n");
+					}
 				}
+
 			}
 
 		}
@@ -198,15 +204,16 @@ public class ToWiring extends Visitor<StringBuffer> {
 			if(transition.getCondition() != null) {
 				if (transition.getCondition() instanceof ComposedCondition) {
 					w(String.format("\t\t\t%sBounceGuard = millis() - %sLastDebounceTime > debounce;\n",((SingularCondition)((ComposedCondition)transition.getCondition()).getConditions().get(0)).getSensor().getName(),
-							((SingularCondition)((ComposedCondition)transition.getCondition()).getConditions().get(1)).getSensor().getName()));
-					w(String.format("\t\t\t%sBounceGuard = millis() - %slastDebounceTime > debounce;\n",((SingularCondition)((ComposedCondition)transition.getCondition()).getConditions().get(1)).getSensor().getName(),
+							((SingularCondition)((ComposedCondition)transition.getCondition()).getConditions().get(0)).getSensor().getName()));
+					w(String.format("\t\t\t%sBounceGuard = millis() - %sLastDebounceTime > debounce;\n",((SingularCondition)((ComposedCondition)transition.getCondition()).getConditions().get(1)).getSensor().getName(),
 							((SingularCondition)((ComposedCondition)transition.getCondition()).getConditions().get(1)).getSensor().getName()));
 					w("\t\t\tif");
 					((ComposedCondition) transition.getCondition()).accept(this);
 					w(String.format("{\n\t\t\t\t%sLastDebounceTime = millis();\n",((SingularCondition)((ComposedCondition)transition.getCondition()).getConditions().get(0)).getSensor().getName()));
 					w(String.format("\t\t\t\t%sLastDebounceTime = millis();\n",((SingularCondition)((ComposedCondition)transition.getCondition()).getConditions().get(1)).getSensor().getName()));
 				}else if (transition.getCondition() instanceof SingularCondition) {
-					w(String.format("\t\t\t%sBounceGuard = millis() - lastDebounceTime > debounce;\n", ((SingularCondition) transition.getCondition()).getSensor().getName()));
+					w(String.format("\t\t\t%sBounceGuard = millis() - %sLastDebounceTime > debounce;\n", ((SingularCondition) transition.getCondition()).getSensor().getName(),
+							((SingularCondition) transition.getCondition()).getSensor().getName()));
 					w("\t\t\tif");
 					((SingularCondition) transition.getCondition()).accept(this);
 					w(String.format("{\n\t\t\t\t%sLastDebounceTime = millis();\n", ((SingularCondition) transition.getCondition()).getSensor().getName()));

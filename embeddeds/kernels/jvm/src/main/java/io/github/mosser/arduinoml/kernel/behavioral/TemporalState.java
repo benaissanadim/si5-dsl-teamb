@@ -3,7 +3,7 @@ package io.github.mosser.arduinoml.kernel.behavioral;
 import io.github.mosser.arduinoml.kernel.generator.Visitable;
 import io.github.mosser.arduinoml.kernel.generator.Visitor;
 
-public class TemporalState extends State {
+public class TemporalState extends NormalState {
 
     private int duration;
 
@@ -24,6 +24,5 @@ public class TemporalState extends State {
     public void setTransition(TemporalTransition transition) {
         this.transition = transition;
     }
-
 
 }

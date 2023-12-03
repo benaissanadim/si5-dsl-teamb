@@ -32,7 +32,7 @@ public class Scenario6 {
         on.setDuration(1000);
 
 
-        State off = new State();
+        PerpetualState off = new PerpetualState();
         off.setName("off");
 
         TemporalTransition onToOff = new TemporalTransition();

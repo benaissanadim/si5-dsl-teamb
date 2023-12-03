@@ -20,20 +20,20 @@ void loop() {
 		case on:
 			digitalWrite(11,HIGH);
 			digitalWrite(12,HIGH);
-			buttonBounceGuard = millis() - lastDebounceTime > debounce;
+			buttonBounceGuard = millis() - buttonLastDebounceTime > debounce;
 			if ( buttonBounceGuard && digitalRead(9) == LOW ){
 				buttonLastDebounceTime = millis();
 				currentState = off;
 			}
-		break;
+			break;
 		case off:
 			digitalWrite(11,LOW);
 			digitalWrite(12,LOW);
-			buttonBounceGuard = millis() - lastDebounceTime > debounce;
+			buttonBounceGuard = millis() - buttonLastDebounceTime > debounce;
 			if ( buttonBounceGuard && digitalRead(9) == HIGH ){
 				buttonLastDebounceTime = millis();
 				currentState = on;
 			}
-		break;
+			break;
 	}
 }
