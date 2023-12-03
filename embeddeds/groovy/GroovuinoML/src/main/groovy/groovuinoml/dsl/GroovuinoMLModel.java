@@ -17,6 +17,10 @@ public class GroovuinoMLModel {
 	private List<State> states;
 	private List<ConditionalTransition> transitions;
 
+	private List<TemporalTransition> temporalTransitions;
+
+	private List<TemporalState> temporalStates;
+
 	private State initialState;
 
 
@@ -26,6 +30,7 @@ public class GroovuinoMLModel {
 		this.bricks = new ArrayList<Brick>();
 		this.states = new ArrayList<State>();
 		this.transitions= new ArrayList<ConditionalTransition>();
+		this.temporalTransitions= new ArrayList<TemporalTransition>();
 		this.binding = binding;
 	}
 
@@ -37,6 +42,7 @@ public class GroovuinoMLModel {
 		this.binding.setVariable(name, sensor);
 //		System.out.println("> sensor " + name + " on pin " + pinNumber);
 	}
+
 
 	public void createActuator(String name, Integer pinNumber) {
 		Actuator actuator = new Actuator();
@@ -54,6 +60,14 @@ public class GroovuinoMLModel {
 		this.binding.setVariable(name, state);
 	}
 
+	public void createTemporalState(String name, List<Action> actions) {
+		TemporalState state = new TemporalState();
+		state.setName(name);
+		state.setActions(actions);
+		this.states.add(state);
+		this.binding.setVariable(name, state);
+	}
+
 	public void createTransition(State from, State to, Sensor sensor, SIGNAL value) {
 		ConditionalTransition transition = new ConditionalTransition();
 		transition.setNext(to);
@@ -65,6 +79,17 @@ public class GroovuinoMLModel {
 		ArrayList<ConditionalTransition> transitions = new ArrayList<>();
 		transitions.add(transition);
 		from.setTransitions(transitions);
+	}
+
+	public void createTemporalTransition(TemporalState from, State to, Integer duration) {
+		from.setDuration(duration);
+
+		TemporalTransition transition = new TemporalTransition();
+		transition.setNext(to);
+
+		from.setTransition(transition);
+
+		System.out.println("fromState: " + from.getName());
 	}
 
 	public void createCompositeTransition(State from, State to,ConditionalTransition transition) {

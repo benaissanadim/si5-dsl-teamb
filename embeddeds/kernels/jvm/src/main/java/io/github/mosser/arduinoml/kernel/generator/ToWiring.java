@@ -132,14 +132,28 @@ public class ToWiring extends Visitor<StringBuffer> {
 			for (Action action : state.getActions()) {
 				action.accept(this);
 			}
-			if (state.getTransitions().size() == 0) {
-				w("\t\t\texit(0);\n");
-			}else {
-				for (ConditionalTransition transition : state.getTransitions()) {
-					transition.accept(this);
+			if(state instanceof TemporalState){
+				System.out.println("temporal state");
+				System.out.println(state.getName());
+				System.out.println(((TemporalState) state).getDuration());
+				System.out.println(((TemporalState) state).getTransition());
+				TemporalState temporalState = (TemporalState) state;
+				w(String.format("\t\t\tlong startTime = millis();\n"));
+				w(String.format("\t\t\tif(millis() - startTime > %d){\n",temporalState.getDuration()));
+				if(temporalState.getTransition() != null){
+					temporalState.getTransition().accept(this);
 				}
-				w("\t\tbreak;\n");
+			}else{
+				if (state.getTransitions().size() == 0) {
+					w("\t\t\texit(0);\n");
+				}else {
+					for (ConditionalTransition transition : state.getTransitions()) {
+						transition.accept(this);
+					}
+					w("\t\tbreak;\n");
+				}
 			}
+
 		}
 
 	}
@@ -153,8 +167,10 @@ public class ToWiring extends Visitor<StringBuffer> {
 			String transitionName = transition.getNext().getName();
 			if(transition.getCondition() != null) {
 				if (transition.getCondition() instanceof ComposedCondition) {
-					w(String.format("\t\t\t%sBounceGuard = millis() - lastDebounceTime > debounce;\n",((SingularCondition)((ComposedCondition)transition.getCondition()).getConditions().get(0)).getSensor().getName()));
-					w(String.format("\t\t\t%sBounceGuard = millis() - lastDebounceTime > debounce;\n",((SingularCondition)((ComposedCondition)transition.getCondition()).getConditions().get(1)).getSensor().getName()));
+					w(String.format("\t\t\t%sBounceGuard = millis() - %sLastDebounceTime > debounce;\n",((SingularCondition)((ComposedCondition)transition.getCondition()).getConditions().get(0)).getSensor().getName(),
+							((SingularCondition)((ComposedCondition)transition.getCondition()).getConditions().get(1)).getSensor().getName()));
+					w(String.format("\t\t\t%sBounceGuard = millis() - %slastDebounceTime > debounce;\n",((SingularCondition)((ComposedCondition)transition.getCondition()).getConditions().get(1)).getSensor().getName(),
+							((SingularCondition)((ComposedCondition)transition.getCondition()).getConditions().get(1)).getSensor().getName()));
 					w("\t\t\tif");
 					((ComposedCondition) transition.getCondition()).accept(this);
 					w(String.format("{\n\t\t\t\t%sLastDebounceTime = millis();\n",((SingularCondition)((ComposedCondition)transition.getCondition()).getConditions().get(0)).getSensor().getName()));
@@ -172,14 +188,6 @@ public class ToWiring extends Visitor<StringBuffer> {
 		}
 	}
 
-	SingularCondition getBinaryDeepestUnaryExpression(ComposedCondition expression){
-		Condition ex = expression.getConditions().get(0);
-		if(ex instanceof SingularCondition){
-			return (SingularCondition) ex;
-		}
-		return getBinaryDeepestUnaryExpression((ComposedCondition) ex);
-	}
-
 
 	@Override
 	public void visit(Action action) {
@@ -190,6 +198,12 @@ public class ToWiring extends Visitor<StringBuffer> {
 			w(String.format("\t\t\tdigitalWrite(%d,%s);\n",action.getActuator().getPin(),action.getValue()));
 			return;
 		}
+	}
+
+	@Override
+	public void visit(TemporalTransition transition) {
+		w(String.format("\t\t\t\tcurrentState = %s;\n\t\t\t}\n",transition.getNext().getName()));
+
 	}
 
 }

@@ -4,6 +4,7 @@ import io.github.mosser.arduinoml.kernel.behavioral.ComposedCondition
 import io.github.mosser.arduinoml.kernel.behavioral.Condition
 import io.github.mosser.arduinoml.kernel.behavioral.ConditionalTransition
 import io.github.mosser.arduinoml.kernel.behavioral.SingularCondition
+import io.github.mosser.arduinoml.kernel.behavioral.TemporalState
 import io.github.mosser.arduinoml.kernel.structural.OPERATOR
 import main.groovy.groovuinoml.dsl.GroovuinoMLBinding
 
@@ -45,6 +46,25 @@ abstract class GroovuinoMLBasescript extends Script {
 		[means: closure]
 
 	}
+
+	def temporalstate(String name) {
+		List<Action> actions = new ArrayList<Action>()
+		((GroovuinoMLBinding) this.getBinding()).getGroovuinoMLModel().createTemporalState(name, actions)
+		// recursive closure to allow multiple and statements
+		def closure
+		closure = { actuator ->
+			[becomes: { signal ->
+				Action action = new Action()
+				action.setActuator(actuator instanceof String ? (Actuator)((GroovuinoMLBinding)this.getBinding()).getVariable(actuator) : (Actuator)actuator)
+				action.setValue(signal instanceof String ? (SIGNAL)((GroovuinoMLBinding)this.getBinding()).getVariable(signal) : (SIGNAL)signal)
+				actions.add(action)
+				[and: closure]
+			}]
+		}
+		[means: closure]
+
+	}
+
 	
 	// initial state
 	def initial(state) {
@@ -102,11 +122,27 @@ abstract class GroovuinoMLBasescript extends Script {
 
 				}]
 			}
-			[when: closure ]
+			def after ;
+			after = { time ->
+				((GroovuinoMLBinding) this.getBinding()).getGroovuinoMLModel().createTemporalTransition(
+						state1 instanceof String ? (TemporalState)((GroovuinoMLBinding)this.getBinding()).getVariable(state1) : (TemporalState)state1,
+						state2 instanceof String ? (State)((GroovuinoMLBinding)this.getBinding()).getVariable(state2) : (State)state2,
+						time instanceof String ? (Integer)((GroovuinoMLBinding)this.getBinding()).getVariable(time) : (Integer)	time)
+			}
+			[when: closure, after : after ]
 		}
 
 		[to: closure1]
 	}
+
+	def temporal(state1) {
+		[bacomes : { state2 ->
+			[after : { time ->
+
+			}]
+		}]
+	}
+
 
 	// export name
 	def export(String name) {
