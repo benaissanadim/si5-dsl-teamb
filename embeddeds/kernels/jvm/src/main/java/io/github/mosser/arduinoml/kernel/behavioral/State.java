@@ -10,9 +10,15 @@ import java.util.List;
 public class State implements NamedElement, Visitable {
 
 	private String name;
-	private List<Action> actions = new ArrayList<>();
 	private List<ConditionalTransition> transitions = new ArrayList<>();
+	private List<Action> actions = new ArrayList<>();
+	public List<Action> getActions() {
+		return actions;
+	}
 
+	public void setActions(List<Action> actions) {
+		this.actions = actions;
+	}
 	@Override
 	public String getName() {
 		return name;
@@ -23,13 +29,7 @@ public class State implements NamedElement, Visitable {
 		this.name = name;
 	}
 
-	public List<Action> getActions() {
-		return actions;
-	}
 
-	public void setActions(List<Action> actions) {
-		this.actions = actions;
-	}
 	public void addTransition(ConditionalTransition transition) {
 		this.transitions.add(transition);
 	}
