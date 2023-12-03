@@ -16,6 +16,7 @@ public class GroovuinoMLModel {
 	private List<Brick> bricks;
 	private List<State> states;
 	private List<ConditionalTransition> transitions;
+	private List<ErrorState> errors;
 
 	private List<TemporalTransition> temporalTransitions;
 
@@ -41,6 +42,11 @@ public class GroovuinoMLModel {
 		this.bricks.add(sensor);
 		this.binding.setVariable(name, sensor);
 //		System.out.println("> sensor " + name + " on pin " + pinNumber);
+	}
+	public void createError(ErrorState error) {
+		this.states.add(error);
+		this.binding.setVariable(error.getName(), error);
+
 	}
 
 
@@ -112,7 +118,6 @@ public class GroovuinoMLModel {
 		app.setInitial(this.initialState);
 		Visitor codeGenerator = new ToWiring();
 		app.accept(codeGenerator);
-
 		return codeGenerator.getResult();
 	}
 }

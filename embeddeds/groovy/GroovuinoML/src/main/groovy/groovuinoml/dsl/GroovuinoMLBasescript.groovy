@@ -3,6 +3,7 @@ package main.groovy.groovuinoml.dsl
 import io.github.mosser.arduinoml.kernel.behavioral.ComposedCondition
 import io.github.mosser.arduinoml.kernel.behavioral.Condition
 import io.github.mosser.arduinoml.kernel.behavioral.ConditionalTransition
+import io.github.mosser.arduinoml.kernel.behavioral.ErrorState
 import io.github.mosser.arduinoml.kernel.behavioral.SingularCondition
 import io.github.mosser.arduinoml.kernel.behavioral.TemporalState
 import io.github.mosser.arduinoml.kernel.structural.OPERATOR
@@ -27,6 +28,33 @@ abstract class GroovuinoMLBasescript extends Script {
 	def actuator(String name) {
 		[pin: { n -> ((GroovuinoMLBinding)this.getBinding()).getGroovuinoMLModel().createActuator(name, n) }]
 	}
+	def error(String name) {
+		def error = new ErrorState()
+		error.setName(name)
+		((GroovuinoMLBinding) this.getBinding()).getGroovuinoMLModel().createError(error)
+		def closure
+		closure ={ int pause ->
+			error.setPauseTime(pause)
+			[ ms: {}]
+		}
+		[means: { actuator ->
+					error.setActuator(actuator instanceof String ? (Actuator) ((GroovuinoMLBinding) this.getBinding()).getVariable(actuator) : (Actuator) actuator)
+					 [flashes: { int n ->
+						 error.setErrorNumber(n)
+						 [times: { and ->  [pauses: closure ]
+							}]
+					 	}]
+				}]
+	}
+	def then(String a ){
+		return [
+				[times: { int times ->
+					error.setTimes(times)
+				}]
+		]
+	}
+
+
 	
 	// state "name" means actuator becomes signal [and actuator becomes signal]*n
 	def state(String name) {
@@ -118,7 +146,21 @@ abstract class GroovuinoMLBasescript extends Script {
 						}
 						]
 					}
-					[and: and , or: or]
+					def xor
+					xor= { sensor1  ->
+						[becomes: { signal1 ->
+							def actualSensor1 = sensor1 instanceof String ? (Sensor)((GroovuinoMLBinding)this.getBinding()).getVariable(sensor1) : (Sensor)sensor1
+							def actualSignal1 = signal1 instanceof String ? (SIGNAL)((GroovuinoMLBinding)this.getBinding()).getVariable(signal1) : (SIGNAL)signal1
+							SingularCondition singularCondition = new SingularCondition()
+							singularCondition.setSensor(actualSensor1)
+							singularCondition.setSignal(actualSignal1)
+							composedCondition.setOperator(OPERATOR.XOR)
+							composedCondition.addConditions(Arrays.asList(singularCondition1,singularCondition))
+							transition.setCondition(composedCondition)
+						}
+						]
+					}
+					[and: and , or: or,xor: xor]
 
 				}]
 			}
