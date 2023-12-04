@@ -147,7 +147,7 @@ public class ToWiring extends Visitor<StringBuffer> {
 				for (ConditionalTransition transition : state.getTransitions()) {
 					transition.accept(this);
 				}
-				w("\t\tbreak;\n");
+				w("\t\t\tbreak;\n");
 			}
 		}
 
