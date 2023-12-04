@@ -27,6 +27,7 @@ void loop() {
 			digitalWrite(11,HIGH);
 			startTime = millis();
 			while(millis() - startTime < 1000){
+				currentState = onLed;
 			breakButtonBounceGuard = static_cast<long>(millis() - breakButtonLastDebounceTime) > debounce;
 			if ( breakButtonBounceGuard && digitalRead(10) == HIGH ){
 				breakButtonLastDebounceTime = millis();
@@ -40,6 +41,7 @@ void loop() {
 			digitalWrite(12,LOW);
 			startTime = millis();
 			while(millis() - startTime < 1000){
+				currentState = buzz;
 			breakButtonBounceGuard = static_cast<long>(millis() - breakButtonLastDebounceTime) > debounce;
 			if ( breakButtonBounceGuard && digitalRead(10) == HIGH ){
 				breakButtonLastDebounceTime = millis();
