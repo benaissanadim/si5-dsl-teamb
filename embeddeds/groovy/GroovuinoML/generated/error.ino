@@ -22,15 +22,13 @@ void loop() {
 	switch(currentState){
 		case on:
 			digitalWrite(11,HIGH);
-			button1BounceGuard = static_cast<long>(millis() - button1LastDebounceTime) > debounce;
 			button2BounceGuard = static_cast<long>(millis() - button2LastDebounceTime) > debounce;
+			button1BounceGuard = static_cast<long>(millis() - button1LastDebounceTime) > debounce;
 			if( ( button1BounceGuard && digitalRead(9) == LOW ) &&  ( button2BounceGuard && digitalRead(10) == LOW )){
 				button1LastDebounceTime = millis();
 				button2LastDebounceTime = millis();
 				currentState = off;
 			}
-			button1BounceGuard = static_cast<long>(millis() - button1LastDebounceTime) > debounce;
-			button2BounceGuard = static_cast<long>(millis() - button2LastDebounceTime) > debounce;
 			if( ( button1BounceGuard && digitalRead(9) == HIGH ) &&  ( button2BounceGuard && digitalRead(10) == HIGH )){
 				button1LastDebounceTime = millis();
 				button2LastDebounceTime = millis();
@@ -39,15 +37,13 @@ void loop() {
 			break;
 		case off:
 			digitalWrite(11,LOW);
-			button1BounceGuard = static_cast<long>(millis() - button1LastDebounceTime) > debounce;
 			button2BounceGuard = static_cast<long>(millis() - button2LastDebounceTime) > debounce;
+			button1BounceGuard = static_cast<long>(millis() - button1LastDebounceTime) > debounce;
 			if( ( button1BounceGuard && digitalRead(9) == HIGH )^ ( button2BounceGuard && digitalRead(10) == HIGH )){
 				button1LastDebounceTime = millis();
 				button2LastDebounceTime = millis();
 				currentState = on;
 			}
-			button1BounceGuard = static_cast<long>(millis() - button1LastDebounceTime) > debounce;
-			button2BounceGuard = static_cast<long>(millis() - button2LastDebounceTime) > debounce;
 			if( ( button1BounceGuard && digitalRead(9) == HIGH ) &&  ( button2BounceGuard && digitalRead(10) == HIGH )){
 				button1LastDebounceTime = millis();
 				button2LastDebounceTime = millis();
@@ -62,15 +58,11 @@ void loop() {
 				delay(500);
 			}
 			delay(3 * 1000);
-			button1BounceGuard = static_cast<long>(millis() - button1LastDebounceTime) > debounce;
-			button2BounceGuard = static_cast<long>(millis() - button2LastDebounceTime) > debounce;
 			if( ( button1BounceGuard && digitalRead(9) == LOW ) &&  ( button2BounceGuard && digitalRead(10) == LOW )){
 				button1LastDebounceTime = millis();
 				button2LastDebounceTime = millis();
 				currentState = off;
 			}
-			button1BounceGuard = static_cast<long>(millis() - button1LastDebounceTime) > debounce;
-			button2BounceGuard = static_cast<long>(millis() - button2LastDebounceTime) > debounce;
 			if( ( button1BounceGuard && digitalRead(9) == HIGH )^ ( button2BounceGuard && digitalRead(10) == HIGH )){
 				button1LastDebounceTime = millis();
 				button2LastDebounceTime = millis();

@@ -4,6 +4,10 @@ import io.github.mosser.arduinoml.kernel.App;
 import io.github.mosser.arduinoml.kernel.behavioral.*;
 import io.github.mosser.arduinoml.kernel.structural.*;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+
 /**
  * Quick and dirty visitor to support the generation of Wiring code
  */
@@ -193,13 +197,31 @@ public class ToWiring extends Visitor<StringBuffer> {
 					if (state.getTransitions().size() == 0) {
 						w("\t\t\texit(0);\n");
 					} else {
+						HashSet<String> names = new HashSet<>();
+						for (ConditionalTransition transition : state.getTransitions()) {
+							for (Condition condition : ((ComposedCondition) transition.getCondition()).getConditions()) {
+								if (transition.getCondition() != null) {
+									if (transition.getCondition() instanceof ComposedCondition) {
+										ComposedCondition composedCondition = (ComposedCondition) transition.getCondition();
+										String nameToAdd1 = ((SingularCondition) composedCondition.getConditions().get(0)).getSensor().getName();
+										String nameToAdd2 = ((SingularCondition) composedCondition.getConditions().get(1)).getSensor().getName();
+										names.add(nameToAdd1);
+										names.add(nameToAdd2);
+									}
+								}
+							}
+
+						}
+						for (String name : names) {
+							w(String.format("\t\t\t%sBounceGuard = static_cast<long>(millis() - %sLastDebounceTime) > debounce;\n", name, name));
+						}
 						for (ConditionalTransition transition : state.getTransitions()) {
 							transition.accept(this);
 						}
-						w("\t\t\tbreak;\n");
+							w("\t\t\tbreak;\n");
 					}
-				}
 
+				}
 			}
 
 		}
@@ -215,10 +237,6 @@ public class ToWiring extends Visitor<StringBuffer> {
 			String transitionName = transition.getNext().getName();
 			if(transition.getCondition() != null) {
 				if (transition.getCondition() instanceof ComposedCondition) {
-					w(String.format("\t\t\t%sBounceGuard = static_cast<long>(millis() - %sLastDebounceTime) > debounce;\n",((SingularCondition)((ComposedCondition)transition.getCondition()).getConditions().get(0)).getSensor().getName(),
-							((SingularCondition)((ComposedCondition)transition.getCondition()).getConditions().get(0)).getSensor().getName()));
-					w(String.format("\t\t\t%sBounceGuard = static_cast<long>(millis() - %sLastDebounceTime) > debounce;\n",((SingularCondition)((ComposedCondition)transition.getCondition()).getConditions().get(1)).getSensor().getName(),
-							((SingularCondition)((ComposedCondition)transition.getCondition()).getConditions().get(1)).getSensor().getName()));
 					w("\t\t\tif");
 					((ComposedCondition) transition.getCondition()).accept(this);
 					w(String.format("{\n\t\t\t\t%sLastDebounceTime = millis();\n",((SingularCondition)((ComposedCondition)transition.getCondition()).getConditions().get(0)).getSensor().getName()));
