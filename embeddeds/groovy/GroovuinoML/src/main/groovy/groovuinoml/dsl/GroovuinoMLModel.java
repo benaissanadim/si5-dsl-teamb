@@ -92,10 +92,7 @@ public class GroovuinoMLModel {
 
 		TemporalTransition transition = new TemporalTransition();
 		transition.setNext(to);
-
 		from.setTransition(transition);
-
-		System.out.println("fromState: " + from.getName());
 	}
 
 	public void createCompositeTransition(State from, State to,ConditionalTransition transition) {

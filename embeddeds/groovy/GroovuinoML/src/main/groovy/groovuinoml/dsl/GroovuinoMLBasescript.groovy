@@ -177,15 +177,7 @@ abstract class GroovuinoMLBasescript extends Script {
 		[to: closure1]
 	}
 
-	def temporal(state1) {
-		[bacomes : { state2 ->
-			[after : { time ->
-
-			}]
-		}]
-	}
-
-
+	// export name
 	// export name
 	def export(String name) {
 		println(((GroovuinoMLBinding) this.getBinding()).getGroovuinoMLModel().generateCode(name).toString())
