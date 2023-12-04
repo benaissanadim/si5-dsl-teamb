@@ -99,12 +99,7 @@ function compileState(state, initial, fileNode) {
         compileTemporalState(state.body, initial, fileNode);
     if (state.body.$type === "ErrorState")
         compileErrorState(state.body, fileNode);
-    var bounceGuards = [];
-    for (const transition of state.body.conditionalTransitions) {
-        fileNode.append(`
-					` + bounceGuardVars(transition.condition, bounceGuards));
-    }
-    if (state.body.$type !== "TemporalState") {
+    if (state.body.$type === "PerpetualState") {
         for (const transition of state.body.conditionalTransitions) {
             compileConditionalTransition(transition, fileNode);
         }
@@ -115,6 +110,11 @@ function compileState(state, initial, fileNode) {
 function compileNormalState(state, fileNode) {
     for (const action of state.actions) {
         compileAction(action, fileNode);
+    }
+    var bounceGuards = [];
+    for (const transition of state.conditionalTransitions) {
+        fileNode.append(`
+					` + bounceGuardVars(transition.condition, bounceGuards));
     }
 }
 function compileTemporalState(state, initial, fileNode) {

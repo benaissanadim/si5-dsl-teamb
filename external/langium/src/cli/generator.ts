@@ -139,14 +139,7 @@ function compileState(
   if (state.body.$type === "ErrorState")
     compileErrorState(state.body, fileNode);
 
-  var bounceGuards: Array<string | undefined> = [];
-  for (const transition of state.body.conditionalTransitions) {
-    fileNode.append(
-      `
-					` + bounceGuardVars(transition.condition, bounceGuards)
-    );
-  }
-  if (state.body.$type !== "TemporalState") {
+  if (state.body.$type === "PerpetualState") {
     for (const transition of state.body.conditionalTransitions) {
       compileConditionalTransition(transition, fileNode);
     }
@@ -161,6 +154,13 @@ function compileNormalState(
 ) {
   for (const action of state.actions) {
     compileAction(action, fileNode);
+  }
+  var bounceGuards: Array<string | undefined> = [];
+  for (const transition of state.conditionalTransitions) {
+    fileNode.append(
+      `
+					` + bounceGuardVars(transition.condition, bounceGuards)
+    );
   }
 }
 

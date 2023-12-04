@@ -51,8 +51,6 @@ ErrorState :
 		"errorNumber" ':' errorNumber=INT
 		"pauseTime" ':' pauseTime=INT
 		"errorActuator" ':' errorActuator=[Actuator:ID]
-		conditionalTransitions+=ConditionalTransition
-		(conditionalTransitions+=ConditionalTransition)*
 	;
 	
 

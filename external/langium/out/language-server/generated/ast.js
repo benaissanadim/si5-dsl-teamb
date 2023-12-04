@@ -151,14 +151,6 @@ class ArduinoMlAstReflection extends langium_1.AbstractAstReflection {
                     ]
                 };
             }
-            case 'ErrorState': {
-                return {
-                    name: 'ErrorState',
-                    mandatory: [
-                        { name: 'conditionalTransitions', type: 'array' }
-                    ]
-                };
-            }
             case 'PerpetualState': {
                 return {
                     name: 'PerpetualState',

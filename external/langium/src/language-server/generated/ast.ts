@@ -85,7 +85,7 @@ export function isCompositeCondition(item: unknown): item is CompositeCondition 
 }
 
 export interface ConditionalTransition extends AstNode {
-    readonly $container: ErrorState | PerpetualState | TemporalState;
+    readonly $container: PerpetualState | TemporalState;
     readonly $type: 'ConditionalTransition';
     condition: Condition
     next: Reference<State>
@@ -100,7 +100,6 @@ export function isConditionalTransition(item: unknown): item is ConditionalTrans
 export interface ErrorState extends AstNode {
     readonly $container: State;
     readonly $type: 'ErrorState';
-    conditionalTransitions: Array<ConditionalTransition>
     errorActuator: Reference<Actuator>
     errorNumber: number
     pauseTime: number
@@ -306,14 +305,6 @@ export class ArduinoMlAstReflection extends AbstractAstReflection {
                     mandatory: [
                         { name: 'bricks', type: 'array' },
                         { name: 'states', type: 'array' }
-                    ]
-                };
-            }
-            case 'ErrorState': {
-                return {
-                    name: 'ErrorState',
-                    mandatory: [
-                        { name: 'conditionalTransitions', type: 'array' }
                     ]
                 };
             }

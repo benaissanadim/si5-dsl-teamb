@@ -3,6 +3,7 @@
 // Application name: foo
 
 long debounce = 200;
+long startTime; // Used for temporal transitions
 enum STATE {on, off};
 
 STATE currentState = off;
@@ -10,12 +11,12 @@ STATE currentState = off;
 bool button1BounceGuard = false;
 long button1LastDebounceTime = 0;
 
-            
+
 
 bool button2BounceGuard = false;
 long button2LastDebounceTime = 0;
 
-            
+
 
 	void setup(){
 		pinMode(9, INPUT); // button1 [Sensor]

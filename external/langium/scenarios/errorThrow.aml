@@ -23,7 +23,5 @@ error {
     errorNumber : 3
     pauseTime : 3
     errorActuator : led
-    ( button1 is LOW and button2 is LOW ) => off
-    ( button1 is HIGH xor button2 is HIGH ) => on
 }
 }
