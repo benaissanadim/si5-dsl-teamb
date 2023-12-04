@@ -18,7 +18,7 @@ void loop() {
 	switch(currentState){
 		case on:
 			digitalWrite(11,HIGH);
-			buttonBounceGuard = millis() - buttonLastDebounceTime > debounce;
+			buttonBounceGuard = static_cast<long>(millis() - buttonLastDebounceTime) > debounce;
 			if ( buttonBounceGuard && digitalRead(9) == HIGH ){
 				buttonLastDebounceTime = millis();
 				currentState = off;
@@ -26,7 +26,7 @@ void loop() {
 			break;
 		case off:
 			digitalWrite(11,LOW);
-			buttonBounceGuard = millis() - buttonLastDebounceTime > debounce;
+			buttonBounceGuard = static_cast<long>(millis() - buttonLastDebounceTime) > debounce;
 			if ( buttonBounceGuard && digitalRead(9) == HIGH ){
 				buttonLastDebounceTime = millis();
 				currentState = on;
