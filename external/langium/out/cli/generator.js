@@ -29,6 +29,7 @@ function compile(app, fileNode) {
         `
 
 long debounce = 200;
+long startTime; // Used for temporal transitions
 enum STATE {` +
         app.states.map((s) => s.name).join(", ") +
         `};
@@ -46,7 +47,7 @@ long ` +
                 brick.name +
                 `LastDebounceTime = 0;
 
-            `, langium_1.NL);
+`, langium_1.NL);
         }
     }
     fileNode.append(`
@@ -124,7 +125,7 @@ function compileTemporalState(state, initial, fileNode) {
         ? (_a = temporalTransition.next.ref) === null || _a === void 0 ? void 0 : _a.name
         : initial;
     fileNode.append(`               
-                    long startTime = millis();
+                    startTime = millis();
                     // Continue as long as the elapsed time is less than ` +
         temporalTransition.duration +
         ` milliseconds

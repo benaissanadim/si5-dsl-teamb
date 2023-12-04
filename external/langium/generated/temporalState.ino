@@ -3,6 +3,7 @@
 // Application name: foo
 
 long debounce = 200;
+long startTime; // Used for temporal transitions
 enum STATE {on, buzz, off};
 
 STATE currentState = off;
@@ -10,12 +11,12 @@ STATE currentState = off;
 bool buttonBounceGuard = false;
 long buttonLastDebounceTime = 0;
 
-            
+
 
 bool breakButtonBounceGuard = false;
 long breakButtonLastDebounceTime = 0;
 
-            
+
 
 	void setup(){
 		pinMode(9, INPUT); // button [Sensor]
@@ -28,7 +29,7 @@ long breakButtonLastDebounceTime = 0;
 
 				case on:
 					digitalWrite(11,HIGH);               
-                    long startTime = millis();
+                    startTime = millis();
                     // Continue as long as the elapsed time is less than 1000 milliseconds
                     while (millis() - startTime < 1000) {
                         if ( digitalRead(8) == HIGH && breakButtonBounceGuard ) {
@@ -44,7 +45,7 @@ long breakButtonLastDebounceTime = 0;
 				  break;
 				case buzz:
 					digitalWrite(10,HIGH);               
-                    long startTime = millis();
+                    startTime = millis();
                     // Continue as long as the elapsed time is less than 1000 milliseconds
                     while (millis() - startTime < 1000) {
                         if ( digitalRead(8) == HIGH && breakButtonBounceGuard ) {
@@ -60,6 +61,7 @@ long breakButtonLastDebounceTime = 0;
 				  break;
 				case off:
 					digitalWrite(11,LOW);
+					digitalWrite(10,LOW);
 					buttonBounceGuard = static_cast<long>(millis() - buttonLastDebounceTime) > debounce;
 					if ( digitalRead(9) == HIGH && buttonBounceGuard ) {
 						buttonLastDebounceTime = millis();

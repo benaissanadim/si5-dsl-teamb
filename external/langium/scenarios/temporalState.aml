@@ -10,21 +10,19 @@ app foo initial state off {
   // Declaring states
   states
   on {
-    NormalState
     led <= HIGH
     after 1000 ms => buzz
     breakButton is HIGH => off
   }
 buzz {
-    NormalState
     buzzer <= HIGH
-    runFor 1000 ms
+    after 1000 ms => off
     breakButton is HIGH => off
 }
 
   off {
-    NormalState
     led <= LOW
+    buzzer <= LOW
     button is HIGH => on
   }
 }
