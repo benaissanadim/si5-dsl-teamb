@@ -124,6 +124,17 @@ function compileNormalState(state, initial, fileNode) {
     }
 }
 function compileTemporalTransition(state, temporalTransition, next, fileNode) {
+    let condition = "";
+    if (temporalTransition.condition && temporalTransition.op) {
+        const op = temporalTransition.op;
+        const logicalOperator = op.AND ? "&&" : op.OR ? "||" : op.XOR ? "^" : "";
+        condition =
+            " " +
+                logicalOperator +
+                " " +
+                compileCondition(temporalTransition.condition) +
+                " ";
+    }
     fileNode.append(`               
                     startTime = millis();
                     // Continue as long as the elapsed time is less than ` +
@@ -131,6 +142,7 @@ function compileTemporalTransition(state, temporalTransition, next, fileNode) {
         ` milliseconds
                     while (millis() - startTime < ` +
         temporalTransition.duration +
+        condition +
         `) {
                         `);
     for (const transition of state.conditionalTransitions) {

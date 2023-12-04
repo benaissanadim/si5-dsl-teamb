@@ -64,7 +64,7 @@ ConditionalTransition :
 	condition=Condition '=>' next=[NormalState:ID] | condition=Condition '=>' 'throw' next=[ErrorState:ID];
 
 TemporalTransition:
-	'after' duration=INT 'ms' '=>' next=[NormalState:ID] | 'runFor' duration=INT 'ms';
+	'after' duration=INT 'ms' (op=LogicalOperator condition=Condition)? '=>' next=[NormalState:ID]  | 'runFor' duration=INT 'ms';
 
 
 Condition :

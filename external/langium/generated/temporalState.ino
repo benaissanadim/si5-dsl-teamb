@@ -33,7 +33,7 @@ long breakButtonLastDebounceTime = 0;
 					               
                     startTime = millis();
                     // Continue as long as the elapsed time is less than 1000 milliseconds
-                    while (millis() - startTime < 1000) {
+                    while (millis() - startTime < 1000 && digitalRead(9) == HIGH && buttonBounceGuard ) {
                         if ( digitalRead(8) == HIGH && breakButtonBounceGuard ) {
 						breakButtonLastDebounceTime = millis();
 						currentState = off;

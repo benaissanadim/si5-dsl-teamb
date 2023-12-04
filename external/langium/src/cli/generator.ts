@@ -175,6 +175,18 @@ function compileTemporalTransition(
   next: string | undefined,
   fileNode: CompositeGeneratorNode
 ) {
+  let condition: string = "";
+  if (temporalTransition.condition && temporalTransition.op) {
+    const op = temporalTransition.op;
+    const logicalOperator = op.AND ? "&&" : op.OR ? "||" : op.XOR ? "^" : "";
+    condition =
+      " " +
+      logicalOperator +
+      " " +
+      compileCondition(temporalTransition.condition) +
+      " ";
+  }
+
   fileNode.append(
     `               
                     startTime = millis();
@@ -183,6 +195,7 @@ function compileTemporalTransition(
       ` milliseconds
                     while (millis() - startTime < ` +
       temporalTransition.duration +
+      condition +
       `) {
                         `
   );

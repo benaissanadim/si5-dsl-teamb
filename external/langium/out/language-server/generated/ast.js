@@ -117,9 +117,7 @@ class ArduinoMlAstReflection extends langium_1.AbstractAstReflection {
             case 'ErrorState:errorActuator': {
                 return exports.Actuator;
             }
-            case 'App:initial': {
-                return exports.State;
-            }
+            case 'App:initial':
             case 'ConditionalTransition:next':
             case 'TemporalTransition:next': {
                 return exports.NormalState;

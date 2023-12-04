@@ -59,7 +59,7 @@ export function isActuator(item: unknown): item is Actuator {
 export interface App extends AstNode {
     readonly $type: 'App';
     bricks: Array<Brick>
-    initial: Reference<State>
+    initial: Reference<NormalState>
     name: string
     states: Array<State>
 }
@@ -71,7 +71,7 @@ export function isApp(item: unknown): item is App {
 }
 
 export interface CompositeCondition extends AstNode {
-    readonly $container: CompositeCondition | ConditionalTransition;
+    readonly $container: CompositeCondition | ConditionalTransition | TemporalTransition;
     readonly $type: 'CompositeCondition';
     left: Condition
     op: LogicalOperator
@@ -113,7 +113,7 @@ export function isErrorState(item: unknown): item is ErrorState {
 }
 
 export interface LogicalOperator extends AstNode {
-    readonly $container: CompositeCondition;
+    readonly $container: CompositeCondition | TemporalTransition;
     readonly $type: 'LogicalOperator';
     AND?: 'and'
     OR?: 'or'
@@ -179,7 +179,7 @@ export function isSignal(item: unknown): item is Signal {
 }
 
 export interface SignalCondition extends AstNode {
-    readonly $container: CompositeCondition | ConditionalTransition;
+    readonly $container: CompositeCondition | ConditionalTransition | TemporalTransition;
     readonly $type: 'SignalCondition';
     ne?: NegationOperator
     sensor: Reference<Sensor>
@@ -195,8 +195,10 @@ export function isSignalCondition(item: unknown): item is SignalCondition {
 export interface TemporalTransition extends AstNode {
     readonly $container: NormalState;
     readonly $type: 'TemporalTransition';
+    condition?: Condition
     duration: number
     next?: Reference<NormalState>
+    op?: LogicalOperator
 }
 
 export const TemporalTransition = 'TemporalTransition';
@@ -257,9 +259,7 @@ export class ArduinoMlAstReflection extends AbstractAstReflection {
             case 'ErrorState:errorActuator': {
                 return Actuator;
             }
-            case 'App:initial': {
-                return State;
-            }
+            case 'App:initial':
             case 'ConditionalTransition:next':
             case 'TemporalTransition:next': {
                 return NormalState;
