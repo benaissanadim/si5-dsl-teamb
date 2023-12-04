@@ -11,7 +11,7 @@ import {
   Condition,
   NormalState,
   ErrorState,
-  TemporalState,
+  TemporalTransition,
 } from "../language-server/generated/ast";
 import { extractDestinationAndName } from "./cli-util";
 
@@ -131,49 +131,50 @@ function compileState(
       state.name +
       `:`
   );
-  if (state.body.$type === "PerpetualState")
-    compileNormalState(state.body, fileNode);
-  if (state.body.$type === "TemporalState")
-    compileTemporalState(state.body, initial, fileNode);
+  if (state.$type === "NormalState")
+    compileNormalState(state, initial, fileNode);
 
-  if (state.body.$type === "ErrorState")
-    compileErrorState(state.body, fileNode);
+  if (state.$type === "ErrorState") compileErrorState(state, fileNode);
 
-  if (state.body.$type === "PerpetualState") {
-    for (const transition of state.body.conditionalTransitions) {
-      compileConditionalTransition(transition, fileNode);
-    }
-  }
   fileNode.append(`
 				  break;`);
 }
 
 function compileNormalState(
   state: NormalState,
+  initial: string | undefined,
   fileNode: CompositeGeneratorNode
 ) {
   for (const action of state.actions) {
     compileAction(action, fileNode);
   }
-  var bounceGuards: Array<string | undefined> = [];
+  const bounceGuards: Array<string | undefined> = [];
   for (const transition of state.conditionalTransitions) {
     fileNode.append(
       `
 					` + bounceGuardVars(transition.condition, bounceGuards)
     );
   }
+
+  if (state.temporalTransition) {
+    const temporalTransition = state.temporalTransition;
+    const next = temporalTransition.next
+      ? temporalTransition.next.ref?.name
+      : initial;
+    compileTemporalTransition(state, temporalTransition, next, fileNode);
+  } else {
+    for (const transition of state.conditionalTransitions) {
+      compileConditionalTransition(transition, fileNode);
+    }
+  }
 }
 
-function compileTemporalState(
-  state: TemporalState,
-  initial: string | undefined,
+function compileTemporalTransition(
+  state: NormalState,
+  temporalTransition: TemporalTransition,
+  next: string | undefined,
   fileNode: CompositeGeneratorNode
 ) {
-  compileNormalState(state, fileNode);
-  const temporalTransition = state.temporalTransition;
-  const next = temporalTransition.next
-    ? temporalTransition.next.ref?.name
-    : initial;
   fileNode.append(
     `               
                     startTime = millis();

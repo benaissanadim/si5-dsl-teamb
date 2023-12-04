@@ -4,7 +4,7 @@
  * DO NOT EDIT MANUALLY!
  ******************************************************************************/
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.reflection = exports.ArduinoMlAstReflection = exports.isTemporalTransition = exports.TemporalTransition = exports.isTemporalState = exports.TemporalState = exports.isState = exports.State = exports.isSignalCondition = exports.SignalCondition = exports.isSignal = exports.Signal = exports.isSensor = exports.Sensor = exports.isPerpetualState = exports.PerpetualState = exports.isNegationOperator = exports.NegationOperator = exports.isLogicalOperator = exports.LogicalOperator = exports.isErrorState = exports.ErrorState = exports.isConditionalTransition = exports.ConditionalTransition = exports.isCompositeCondition = exports.CompositeCondition = exports.isApp = exports.App = exports.isActuator = exports.Actuator = exports.isAction = exports.Action = exports.isNormalState = exports.NormalState = exports.isCondition = exports.Condition = exports.isBrick = exports.Brick = void 0;
+exports.reflection = exports.ArduinoMlAstReflection = exports.isTemporalTransition = exports.TemporalTransition = exports.isSignalCondition = exports.SignalCondition = exports.isSignal = exports.Signal = exports.isSensor = exports.Sensor = exports.isNormalState = exports.NormalState = exports.isNegationOperator = exports.NegationOperator = exports.isLogicalOperator = exports.LogicalOperator = exports.isErrorState = exports.ErrorState = exports.isConditionalTransition = exports.ConditionalTransition = exports.isCompositeCondition = exports.CompositeCondition = exports.isApp = exports.App = exports.isActuator = exports.Actuator = exports.isAction = exports.Action = exports.isState = exports.State = exports.isCondition = exports.Condition = exports.isBrick = exports.Brick = void 0;
 /* eslint-disable */
 const langium_1 = require("langium");
 exports.Brick = 'Brick';
@@ -17,11 +17,11 @@ function isCondition(item) {
     return exports.reflection.isInstance(item, exports.Condition);
 }
 exports.isCondition = isCondition;
-exports.NormalState = 'NormalState';
-function isNormalState(item) {
-    return exports.reflection.isInstance(item, exports.NormalState);
+exports.State = 'State';
+function isState(item) {
+    return exports.reflection.isInstance(item, exports.State);
 }
-exports.isNormalState = isNormalState;
+exports.isState = isState;
 exports.Action = 'Action';
 function isAction(item) {
     return exports.reflection.isInstance(item, exports.Action);
@@ -62,11 +62,11 @@ function isNegationOperator(item) {
     return exports.reflection.isInstance(item, exports.NegationOperator);
 }
 exports.isNegationOperator = isNegationOperator;
-exports.PerpetualState = 'PerpetualState';
-function isPerpetualState(item) {
-    return exports.reflection.isInstance(item, exports.PerpetualState);
+exports.NormalState = 'NormalState';
+function isNormalState(item) {
+    return exports.reflection.isInstance(item, exports.NormalState);
 }
-exports.isPerpetualState = isPerpetualState;
+exports.isNormalState = isNormalState;
 exports.Sensor = 'Sensor';
 function isSensor(item) {
     return exports.reflection.isInstance(item, exports.Sensor);
@@ -82,16 +82,6 @@ function isSignalCondition(item) {
     return exports.reflection.isInstance(item, exports.SignalCondition);
 }
 exports.isSignalCondition = isSignalCondition;
-exports.State = 'State';
-function isState(item) {
-    return exports.reflection.isInstance(item, exports.State);
-}
-exports.isState = isState;
-exports.TemporalState = 'TemporalState';
-function isTemporalState(item) {
-    return exports.reflection.isInstance(item, exports.TemporalState);
-}
-exports.isTemporalState = isTemporalState;
 exports.TemporalTransition = 'TemporalTransition';
 function isTemporalTransition(item) {
     return exports.reflection.isInstance(item, exports.TemporalTransition);
@@ -99,7 +89,7 @@ function isTemporalTransition(item) {
 exports.isTemporalTransition = isTemporalTransition;
 class ArduinoMlAstReflection extends langium_1.AbstractAstReflection {
     getAllTypes() {
-        return ['Action', 'Actuator', 'App', 'Brick', 'CompositeCondition', 'Condition', 'ConditionalTransition', 'ErrorState', 'LogicalOperator', 'NegationOperator', 'NormalState', 'PerpetualState', 'Sensor', 'Signal', 'SignalCondition', 'State', 'TemporalState', 'TemporalTransition'];
+        return ['Action', 'Actuator', 'App', 'Brick', 'CompositeCondition', 'Condition', 'ConditionalTransition', 'ErrorState', 'LogicalOperator', 'NegationOperator', 'NormalState', 'Sensor', 'Signal', 'SignalCondition', 'State', 'TemporalTransition'];
     }
     computeIsSubtype(subtype, supertype) {
         switch (subtype) {
@@ -111,9 +101,9 @@ class ArduinoMlAstReflection extends langium_1.AbstractAstReflection {
             case exports.SignalCondition: {
                 return this.isSubtype(exports.Condition, supertype);
             }
-            case exports.PerpetualState:
-            case exports.TemporalState: {
-                return this.isSubtype(exports.NormalState, supertype);
+            case exports.ErrorState:
+            case exports.NormalState: {
+                return this.isSubtype(exports.State, supertype);
             }
             default: {
                 return false;
@@ -127,10 +117,15 @@ class ArduinoMlAstReflection extends langium_1.AbstractAstReflection {
             case 'ErrorState:errorActuator': {
                 return exports.Actuator;
             }
-            case 'App:initial':
+            case 'App:initial': {
+                return exports.State;
+            }
             case 'ConditionalTransition:next':
             case 'TemporalTransition:next': {
-                return exports.State;
+                return exports.NormalState;
+            }
+            case 'ConditionalTransition:next': {
+                return exports.ErrorState;
             }
             case 'SignalCondition:sensor': {
                 return exports.Sensor;
@@ -151,18 +146,9 @@ class ArduinoMlAstReflection extends langium_1.AbstractAstReflection {
                     ]
                 };
             }
-            case 'PerpetualState': {
+            case 'NormalState': {
                 return {
-                    name: 'PerpetualState',
-                    mandatory: [
-                        { name: 'actions', type: 'array' },
-                        { name: 'conditionalTransitions', type: 'array' }
-                    ]
-                };
-            }
-            case 'TemporalState': {
-                return {
-                    name: 'TemporalState',
+                    name: 'NormalState',
                     mandatory: [
                         { name: 'actions', type: 'array' },
                         { name: 'conditionalTransitions', type: 'array' }
