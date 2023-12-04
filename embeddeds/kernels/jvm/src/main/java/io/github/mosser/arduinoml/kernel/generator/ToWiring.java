@@ -199,7 +199,8 @@ public class ToWiring extends Visitor<StringBuffer> {
 					} else {
 						HashSet<String> names = new HashSet<>();
 						for (ConditionalTransition transition : state.getTransitions()) {
-							for (Condition condition : ((ComposedCondition) transition.getCondition()).getConditions()) {
+							if(transition.getCondition() instanceof ComposedCondition){
+								for (Condition condition : ((ComposedCondition) transition.getCondition()).getConditions()) {
 								if (transition.getCondition() != null) {
 									if (transition.getCondition() instanceof ComposedCondition) {
 										ComposedCondition composedCondition = (ComposedCondition) transition.getCondition();
@@ -210,7 +211,7 @@ public class ToWiring extends Visitor<StringBuffer> {
 									}
 								}
 							}
-
+							}
 						}
 						for (String name : names) {
 							w(String.format("\t\t\t%sBounceGuard = static_cast<long>(millis() - %sLastDebounceTime) > debounce;\n", name, name));
