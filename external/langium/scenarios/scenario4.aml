@@ -15,14 +15,14 @@ app foo initial state off {
     button is HIGH => secondPush
   }
 
-   secondPush {
-       NormalState
-       led <= HIGH
-       buzzer <= LOW
-       button is HIGH => off
-    }
+  secondPush {
+      NormalState
+      led <= HIGH
+      buzzer <= LOW
+      button is HIGH => off
+   }
 
-    off {
+  off {
        NormalState
        led <= LOW
        buzzer <= LOW

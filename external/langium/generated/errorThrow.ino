@@ -21,7 +21,6 @@ long button2LastDebounceTime = 0;
 		pinMode(9, INPUT); // button1 [Sensor]
 		pinMode(10, INPUT); // button2 [Sensor]
 		pinMode(11, OUTPUT); // led [Actuator]
-		pinMode(13, OUTPUT); // ErrorLed [Actuator]
 	}
 	void loop() {
 			switch(currentState){
@@ -45,7 +44,6 @@ long button2LastDebounceTime = 0;
 				  break;
 				case off:
 					digitalWrite(11,LOW);
-					digitalWrite(13,LOW);
 					button1BounceGuard = static_cast<long>(millis() - button1LastDebounceTime) > debounce;
 					button2BounceGuard = static_cast<long>(millis() - button2LastDebounceTime) > debounce;
 					
@@ -64,9 +62,9 @@ long button2LastDebounceTime = 0;
 				case error:
 					// Blink the error actuator
 					for (int i = 0; i < 3; i++) {
-						digitalWrite(13, HIGH); // turn the error actuator on
+						digitalWrite(11, HIGH); // turn the error actuator on
 						delay(500); // wait for 500ms
-						digitalWrite(13, LOW); // turn the error actuator off
+						digitalWrite(11, LOW); // turn the error actuator off
 						delay(500); // wait for 500ms
 					}
 					delay(3 * 1000);
