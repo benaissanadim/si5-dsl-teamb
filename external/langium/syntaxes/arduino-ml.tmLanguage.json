@@ -10,7 +10,7 @@
     },
     {
       "name": "keyword.control.arduino-ml",
-      "match": "\\b(Actuator|after|and|app|bricks|errorActuator|errorNumber|initial|is|ms|not|or|pauseTime|runFor|Sensor|state|states|xor)\\b"
+      "match": "\\b(Actuator|after|and|app|bricks|errorActuator|errorNumber|initial|is|ms|not|or|pauseTime|runFor|Sensor|state|states|throw|xor)\\b"
     },
     {
       "name": "string.quoted.double.arduino-ml",
