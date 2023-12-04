@@ -1,7 +1,7 @@
 grammar ArduinoMl
 
 entry App:
-	'app' name=ID 'initial' 'state' initial=[State:ID]
+	'app' name=ID 'initial' 'state' initial=[NormalState:ID]
 	'{'
 		'bricks'
 		bricks+=Brick
@@ -25,34 +25,27 @@ Sensor :
 
 
 State :
-	name=ID '{' body = ( NormalState | ErrorState ) '}';
+	  NormalState | ErrorState ;
 
 NormalState :
-		(PerpetualState | TemporalState)
-	;
-
-PerpetualState :
+	name=ID '{' 
 		actions+=Action
 		(actions+=Action)* 
-		conditionalTransitions+=ConditionalTransition
+		(temporalTransition=TemporalTransition)?
 		(conditionalTransitions+=ConditionalTransition)*
+	'}'
 	;
 
-TemporalState :
-		actions+=Action
-		(actions+=Action)* 
-		temporalTransition=TemporalTransition
-		(conditionalTransitions+=ConditionalTransition)*
-		;
+	
 
 
 
 ErrorState :
+	name=ID '{'
 		"errorNumber" ':' errorNumber=INT
 		"pauseTime" ':' pauseTime=INT
 		"errorActuator" ':' errorActuator=[Actuator:ID]
-		conditionalTransitions+=ConditionalTransition
-		(conditionalTransitions+=ConditionalTransition)*
+		'}'
 	;
 	
 
@@ -68,10 +61,10 @@ NegationOperator:
 	NOT = 'not';
 
 ConditionalTransition :
-	condition=Condition '=>' next=[State:ID];
+	condition=Condition '=>' next=[NormalState:ID] | condition=Condition '=>' 'throw' next=[ErrorState:ID];
 
 TemporalTransition:
-	'after' duration=INT 'ms' '=>' next=[State:ID] | 'runFor' duration=INT 'ms';
+	'after' duration=INT 'ms' (op=LogicalOperator condition=Condition)? '=>' next=[NormalState:ID]  | 'runFor' duration=INT 'ms';
 
 
 Condition :

@@ -28,10 +28,12 @@ long breakButtonLastDebounceTime = 0;
 			switch(currentState){
 
 				case on:
-					digitalWrite(11,HIGH);               
+					digitalWrite(11,HIGH);
+					breakButtonBounceGuard = static_cast<long>(millis() - breakButtonLastDebounceTime) > debounce;
+					               
                     startTime = millis();
                     // Continue as long as the elapsed time is less than 1000 milliseconds
-                    while (millis() - startTime < 1000) {
+                    while (millis() - startTime < 1000 && digitalRead(9) == HIGH && buttonBounceGuard ) {
                         if ( digitalRead(8) == HIGH && breakButtonBounceGuard ) {
 						breakButtonLastDebounceTime = millis();
 						currentState = off;
@@ -40,11 +42,11 @@ long breakButtonLastDebounceTime = 0;
                       delayMicroseconds(100);
                     }
                     currentState = buzz;
-					breakButtonBounceGuard = static_cast<long>(millis() - breakButtonLastDebounceTime) > debounce;
-					
 				  break;
 				case buzz:
-					digitalWrite(10,HIGH);               
+					digitalWrite(10,HIGH);
+					breakButtonBounceGuard = static_cast<long>(millis() - breakButtonLastDebounceTime) > debounce;
+					               
                     startTime = millis();
                     // Continue as long as the elapsed time is less than 1000 milliseconds
                     while (millis() - startTime < 1000) {
@@ -56,8 +58,6 @@ long breakButtonLastDebounceTime = 0;
                       delayMicroseconds(100);
                     }
                     currentState = off;
-					breakButtonBounceGuard = static_cast<long>(millis() - breakButtonLastDebounceTime) > debounce;
-					
 				  break;
 				case off:
 					digitalWrite(11,LOW);

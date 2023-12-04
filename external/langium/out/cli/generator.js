@@ -93,37 +93,48 @@ function compileState(state, initial, fileNode) {
 				case ` +
         state.name +
         `:`);
-    if (state.body.$type === "PerpetualState")
-        compileNormalState(state.body, fileNode);
-    if (state.body.$type === "TemporalState")
-        compileTemporalState(state.body, initial, fileNode);
-    if (state.body.$type === "ErrorState")
-        compileErrorState(state.body, fileNode);
-    var bounceGuards = [];
-    for (const transition of state.body.conditionalTransitions) {
-        fileNode.append(`
-					` + bounceGuardVars(transition.condition, bounceGuards));
-    }
-    if (state.body.$type !== "TemporalState") {
-        for (const transition of state.body.conditionalTransitions) {
-            compileConditionalTransition(transition, fileNode);
-        }
-    }
+    if (state.$type === "NormalState")
+        compileNormalState(state, initial, fileNode);
+    if (state.$type === "ErrorState")
+        compileErrorState(state, fileNode);
     fileNode.append(`
 				  break;`);
 }
-function compileNormalState(state, fileNode) {
+function compileNormalState(state, initial, fileNode) {
+    var _a;
     for (const action of state.actions) {
         compileAction(action, fileNode);
     }
+    const bounceGuards = [];
+    for (const transition of state.conditionalTransitions) {
+        fileNode.append(`
+					` + bounceGuardVars(transition.condition, bounceGuards));
+    }
+    if (state.temporalTransition) {
+        const temporalTransition = state.temporalTransition;
+        const next = temporalTransition.next
+            ? (_a = temporalTransition.next.ref) === null || _a === void 0 ? void 0 : _a.name
+            : initial;
+        compileTemporalTransition(state, temporalTransition, next, fileNode);
+    }
+    else {
+        for (const transition of state.conditionalTransitions) {
+            compileConditionalTransition(transition, fileNode);
+        }
+    }
 }
-function compileTemporalState(state, initial, fileNode) {
-    var _a;
-    compileNormalState(state, fileNode);
-    const temporalTransition = state.temporalTransition;
-    const next = temporalTransition.next
-        ? (_a = temporalTransition.next.ref) === null || _a === void 0 ? void 0 : _a.name
-        : initial;
+function compileTemporalTransition(state, temporalTransition, next, fileNode) {
+    let condition = "";
+    if (temporalTransition.condition && temporalTransition.op) {
+        const op = temporalTransition.op;
+        const logicalOperator = op.AND ? "&&" : op.OR ? "||" : op.XOR ? "^" : "";
+        condition =
+            " " +
+                logicalOperator +
+                " " +
+                compileCondition(temporalTransition.condition) +
+                " ";
+    }
     fileNode.append(`               
                     startTime = millis();
                     // Continue as long as the elapsed time is less than ` +
@@ -131,6 +142,7 @@ function compileTemporalState(state, initial, fileNode) {
         ` milliseconds
                     while (millis() - startTime < ` +
         temporalTransition.duration +
+        condition +
         `) {
                         `);
     for (const transition of state.conditionalTransitions) {
