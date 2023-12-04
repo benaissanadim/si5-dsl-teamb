@@ -336,30 +336,21 @@ const ArduinoMlGrammar = () => loadedArduinoMlGrammar !== null && loadedArduinoM
       "$type": "ParserRule",
       "name": "NormalState",
       "definition": {
-        "$type": "Group",
+        "$type": "Alternatives",
         "elements": [
           {
-            "$type": "Keyword",
-            "value": "NormalState"
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@6"
+            },
+            "arguments": []
           },
           {
-            "$type": "Alternatives",
-            "elements": [
-              {
-                "$type": "RuleCall",
-                "rule": {
-                  "$ref": "#/rules@6"
-                },
-                "arguments": []
-              },
-              {
-                "$type": "RuleCall",
-                "rule": {
-                  "$ref": "#/rules@7"
-                },
-                "arguments": []
-              }
-            ]
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@7"
+            },
+            "arguments": []
           }
         ]
       },
@@ -506,10 +497,6 @@ const ArduinoMlGrammar = () => loadedArduinoMlGrammar !== null && loadedArduinoM
       "definition": {
         "$type": "Group",
         "elements": [
-          {
-            "$type": "Keyword",
-            "value": "ErrorState"
-          },
           {
             "$type": "Keyword",
             "value": "errorNumber"

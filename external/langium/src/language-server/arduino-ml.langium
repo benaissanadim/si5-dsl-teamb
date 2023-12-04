@@ -28,7 +28,6 @@ State :
 	name=ID '{' body = ( NormalState | ErrorState ) '}';
 
 NormalState :
-		"NormalState" 
 		(PerpetualState | TemporalState)
 	;
 
@@ -49,7 +48,6 @@ TemporalState :
 
 
 ErrorState :
-		"ErrorState"
 		"errorNumber" ':' errorNumber=INT
 		"pauseTime" ':' pauseTime=INT
 		"errorActuator" ':' errorActuator=[Actuator:ID]

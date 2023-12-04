@@ -42,6 +42,7 @@ function compile(app: App, fileNode: CompositeGeneratorNode) {
       `
 
 long debounce = 200;
+long startTime; // Used for temporal transitions
 enum STATE {` +
       app.states.map((s) => s.name).join(", ") +
       `};
@@ -63,7 +64,7 @@ long ` +
           brick.name +
           `LastDebounceTime = 0;
 
-            `,
+`,
         NL
       );
     }
@@ -175,7 +176,7 @@ function compileTemporalState(
     : initial;
   fileNode.append(
     `               
-                    long startTime = millis();
+                    startTime = millis();
                     // Continue as long as the elapsed time is less than ` +
       temporalTransition.duration +
       ` milliseconds
