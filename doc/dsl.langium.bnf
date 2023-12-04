@@ -35,7 +35,7 @@
 
 <SignalCondition> ::= <ID> "is" (<NegationOperator>)? <Signal>
 
-<CompositeCondition> ::= "(" <Condition> <LogicalOperator> <Condition> ")"
+<CompositeCondition> ::= "(" <Condition> <ComparisonOperator> <Condition> ")"
 
 <Signal> ::= "HIGH" | "LOW"
 

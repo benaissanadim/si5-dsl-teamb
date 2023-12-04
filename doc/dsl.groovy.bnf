@@ -1,0 +1,44 @@
+<ArduinoMlApp> ::= <Brick>+ <State>+ <InitialState> <Transition>+ <Export>
+
+<Brick> ::= <Actuator> | <Sensor>
+
+<Actuator> ::= "actuator" <ID> "onPin" <PIN_INT>
+
+<Sensor> ::= "sensor" <ID> "onPin" <PIN_INT>
+
+<State> ::= <NormalState> | <ErrorState>
+
+<InitialState> ::= "initial" <ID>
+
+<NormalState> ::= "state" <ID> "means" (<Action> (<LogicalOperator> <Action>)*)
+
+<ErrorState> ::= "error" <ID> "means" <ID> "flahses" <INT> "times and pauses" <INT> "ms" 
+
+<Action> ::= <ID> "becomes" <SIGNAL> 
+
+<Transition> ::= "from" <ID> "to" <ID> "when" <Condition>
+
+<Condition> ::= <SignalCondition> | <CompositeCondition>
+
+<SignalCondition> ::= <ID> <> <SIGNAL>
+
+<CompositeCondition> ::= <Condition> <EqualityOperator> <Condition>
+
+<Export> ::= "export" <letter>+
+
+<SIGNAL> ::= "on" | "off"
+
+<LogicalOperator> ::= "and" | "or" | "xor"
+
+<EqualityOperator> ::= "not" | "becomes"
+
+<ID> ::= ( <letter> | <digit> | "_" )+
+
+<INT> ::= <digit> | (<digit> <limitedDigit>)
+
+<PIN_INT> ::= <digit> | (<digit> <limitedDigit>)
+
+<letter> ::= "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m" | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z" | 
+            "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M" | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z"
+<digit> ::= "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
+<limitedDigit> ::= "0" | "1" | "2" | "3" 
