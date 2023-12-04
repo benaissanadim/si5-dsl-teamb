@@ -1,11 +1,10 @@
 sensor "button1" onPin 9
 sensor "button2" onPin 10
 actuator "led" pin 11
-actuator "errorLed" pin 12
 
 state "on" means "led" becomes "high"
-state "off" means "led" becomes "low" and "errorLed" becomes "low"
-error "error" means "errorLed" flashes 3 times "and" pauses 3 ms
+state "off" means "led" becomes "low"
+error "error" means "led" flashes 3 times "and" pauses 3 ms
 
 initial "off"
 
