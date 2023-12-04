@@ -18,9 +18,8 @@
 <TemporalState> ::= ((<Action>)+) <TemporalTransition> ((<ConditionalTransition>)+) 
 
 <ErrorState> ::= "ErrorState" "errorNumber" ":" <INT>
-                "pauseTime" ":" <INT>
-                "errorLed" ":" <ID>
-                (<ConditionalTransition> (<ConditionalTransition>)*) 
+                 "pauseTime" ":" <INT>
+                 "errorLed" ":" <ID>
 
 <Action> ::= <ID> "<=" <Signal>
 
