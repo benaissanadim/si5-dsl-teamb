@@ -19,7 +19,7 @@
 
 <ErrorState> ::= "ErrorState" "errorNumber" ":" <INT>
                 "pauseTime" ":" <INT>
-                "errorActuator" ":" <ID>
+                "errorLedPin" ":" <ID>
                 (<ConditionalTransition> (<ConditionalTransition>)*) 
 
 <Action> ::= <ID> "<=" <Signal>
