@@ -20,8 +20,6 @@ public class GroovuinoMLModel {
 
 	private List<TemporalTransition> temporalTransitions;
 
-	private List<TemporalState> temporalStates;
-
 	private State initialState;
 
 
@@ -59,7 +57,7 @@ public class GroovuinoMLModel {
 	}
 
 	public void createState(String name, List<Action> actions) {
-		PerpetualState state = new PerpetualState();
+		NormalState state = new NormalState();
 		state.setName(name);
 		state.setActions(actions);
 		this.states.add(state);
@@ -67,14 +65,14 @@ public class GroovuinoMLModel {
 	}
 
 	public void createTemporalState(String name, List<Action> actions) {
-		TemporalState state = new TemporalState();
+		NormalState state = new NormalState();
 		state.setName(name);
 		state.setActions(actions);
 		this.states.add(state);
 		this.binding.setVariable(name, state);
 	}
 
-	public void createTransition(State from, State to, Sensor sensor, SIGNAL value) {
+	public void createTransition(NormalState from, NormalState to, Sensor sensor, SIGNAL value) {
 		ConditionalTransition transition = new ConditionalTransition();
 		transition.setNext(to);
 		SingularCondition singularCondition = new SingularCondition();
@@ -84,15 +82,13 @@ public class GroovuinoMLModel {
 		from.addTransition(transition);
 	}
 
-	public void createTemporalTransition(TemporalState from, State to, Integer duration) {
-		from.setDuration(duration);
-
-		TemporalTransition transition = new TemporalTransition();
+	public void createTemporalTransition(NormalState from, NormalState to, Integer duration, TemporalTransition transition) {
+		transition.setDuration(duration);
 		transition.setNext(to);
-		from.setTransition(transition);
+		from.setTemporalTransition(transition);
 	}
 
-	public void createCompositeTransition(State from, State to,ConditionalTransition transition) {
+	public void createCompositeTransition(NormalState from, State to,ConditionalTransition transition) {
 		transition.setNext(to);
 		from.addTransition(transition);
 	}

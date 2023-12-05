@@ -7,10 +7,9 @@ import io.github.mosser.arduinoml.kernel.generator.Visitor;
 import java.util.ArrayList;
 import java.util.List;
 
-public class State implements NamedElement, Visitable {
+public class State implements NamedElement {
 
 	protected String name;
-	private List<ConditionalTransition> transitions = new ArrayList<>();
 	@Override
 	public String getName() {
 		return name;
@@ -21,21 +20,4 @@ public class State implements NamedElement, Visitable {
 		this.name = name;
 	}
 
-
-	public void addTransition(ConditionalTransition transition) {
-		this.transitions.add(transition);
-	}
-
-	public List<ConditionalTransition> getTransitions() {
-		return transitions;
-	}
-
-	public void setTransitions(List<ConditionalTransition> transitions) {
-		this.transitions = transitions;
-	}
-
-	@Override
-	public void accept(Visitor visitor) {
-		visitor.visit(this);
-	}
 }

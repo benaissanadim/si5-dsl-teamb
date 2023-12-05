@@ -31,10 +31,10 @@ public class Scenario2 {
 		buzzer.setPin(12);
 
 		// Declaring states
-		PerpetualState on = new PerpetualState();
+		NormalState on = new NormalState();
 		on.setName("on");
 
-		PerpetualState off = new PerpetualState();
+		NormalState off = new NormalState();
 		off.setName("off");
 
 		// Creating actions

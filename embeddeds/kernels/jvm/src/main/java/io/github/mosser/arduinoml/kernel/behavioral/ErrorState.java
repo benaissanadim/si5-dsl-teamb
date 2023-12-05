@@ -1,9 +1,10 @@
 package io.github.mosser.arduinoml.kernel.behavioral;
 
+import io.github.mosser.arduinoml.kernel.generator.Visitable;
 import io.github.mosser.arduinoml.kernel.generator.Visitor;
 import io.github.mosser.arduinoml.kernel.structural.Actuator;
 
-public class ErrorState extends State{
+public class ErrorState extends State implements Visitable {
     private int errorNumber;
     private int pauseTime;
     private Actuator actuator;

@@ -4,10 +4,10 @@ import io.github.mosser.arduinoml.kernel.behavioral.ComposedCondition
 import io.github.mosser.arduinoml.kernel.behavioral.Condition
 import io.github.mosser.arduinoml.kernel.behavioral.ConditionalTransition
 import io.github.mosser.arduinoml.kernel.behavioral.ErrorState
+import io.github.mosser.arduinoml.kernel.behavioral.NormalState
 import io.github.mosser.arduinoml.kernel.behavioral.SingularCondition
-import io.github.mosser.arduinoml.kernel.behavioral.TemporalState
+import io.github.mosser.arduinoml.kernel.behavioral.TemporalTransition
 import io.github.mosser.arduinoml.kernel.structural.OPERATOR
-import main.groovy.groovuinoml.dsl.GroovuinoMLBinding
 
 import java.util.List;
 
@@ -75,23 +75,6 @@ abstract class GroovuinoMLBasescript extends Script {
 
 	}
 
-	def temporalstate(String name) {
-		List<Action> actions = new ArrayList<Action>()
-		((GroovuinoMLBinding) this.getBinding()).getGroovuinoMLModel().createTemporalState(name, actions)
-		// recursive closure to allow multiple and statements
-		def closure
-		closure = { actuator ->
-			[becomes: { signal ->
-				Action action = new Action()
-				action.setActuator(actuator instanceof String ? (Actuator)((GroovuinoMLBinding)this.getBinding()).getVariable(actuator) : (Actuator)actuator)
-				action.setValue(signal instanceof String ? (SIGNAL)((GroovuinoMLBinding)this.getBinding()).getVariable(signal) : (SIGNAL)signal)
-				actions.add(action)
-				[and: closure]
-			}]
-		}
-		[means: closure]
-
-	}
 
 	
 	// initial state
@@ -102,7 +85,7 @@ abstract class GroovuinoMLBasescript extends Script {
 	def from(String state1) {
 		ConditionalTransition transition = new ConditionalTransition()
 		State state =new State()
-		def actualState1 = state1 instanceof String ? (State)((GroovuinoMLBinding)this.getBinding()).getVariable(state1) : (State)state1
+		def actualState1 = state1 instanceof String ? (NormalState)((GroovuinoMLBinding)this.getBinding()).getVariable(state1) : (NormalState)state1
 		((GroovuinoMLBinding) this.getBinding()).getGroovuinoMLModel().createCompositeTransition(actualState1, state,transition)
 		def closure1
 		closure1={ state2 ->
@@ -110,7 +93,7 @@ abstract class GroovuinoMLBasescript extends Script {
 			state.setName(actualState2.getName())
 			ComposedCondition composedCondition = new ComposedCondition()
 			SingularCondition singularCondition1 = new SingularCondition()
-			def closure
+			def closuref
 			closure = { sensor ->
 				[becomes: { signal ->
 					def actualSensor = sensor instanceof String ? (Sensor)((GroovuinoMLBinding)this.getBinding()).getVariable(sensor) : (Sensor)sensor
@@ -166,10 +149,28 @@ abstract class GroovuinoMLBasescript extends Script {
 			}
 			def after ;
 			after = { time ->
+				TemporalTransition temporalTransition = new TemporalTransition();
 				((GroovuinoMLBinding) this.getBinding()).getGroovuinoMLModel().createTemporalTransition(
-						state1 instanceof String ? (TemporalState)((GroovuinoMLBinding)this.getBinding()).getVariable(state1) : (TemporalState)state1,
-						state2 instanceof String ? (State)((GroovuinoMLBinding)this.getBinding()).getVariable(state2) : (State)state2,
-						time instanceof String ? (Integer)((GroovuinoMLBinding)this.getBinding()).getVariable(time) : (Integer)	time)
+						state1 instanceof String ? (NormalState)((GroovuinoMLBinding)this.getBinding()).getVariable(state1) : (NormalState)state1,
+						state2 instanceof String ? (NormalState)((GroovuinoMLBinding)this.getBinding()).getVariable(state2) : (NormalState)state2,
+						time instanceof String ? (Integer)((GroovuinoMLBinding)this.getBinding()).getVariable(time) : (Integer)	time, temporalTransition)
+
+				[and: { sensor1  ->
+					[becomes: { signal1 ->
+						def actualSensor1 = sensor1 instanceof String ? (Sensor)((GroovuinoMLBinding)this.getBinding()).getVariable(sensor1) : (Sensor)sensor1
+						def actualSignal1 = signal1 instanceof String ? (SIGNAL)((GroovuinoMLBinding)this.getBinding()).getVariable(signal1) : (SIGNAL)signal1
+						SingularCondition singularCondition = new SingularCondition()
+						singularCondition.setSensor(actualSensor1)
+						singularCondition.setSignal(actualSignal1)
+						temporalTransition.setCondition(singularCondition);
+						/*	condition.setSensor(sensor1 instanceof String ? (Sensor)((GroovuinoMLBinding)this.getBinding()).getVariable(sensor1) : (Sensor)sensor1)
+                            condition.setSignal(signal1 instanceof String ? (SIGNAL)((GroovuinoMLBinding)this.getBinding()).getVariable(signal1) : (SIGNAL)signal1)
+    transition.setCondition(condition)
+
+                         */
+					}
+					]
+				}]
 			}
 			[when: closure, after : after ]
 		}

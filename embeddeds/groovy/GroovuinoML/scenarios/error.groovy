@@ -14,5 +14,4 @@ from "on" to "error" when "button1" becomes "high" and "button2" becomes "high"
 from "off" to "on" when "button1" becomes "high" xor "button2" becomes "high"
 from "off" to "error" when "button1" becomes "high" and "button2" becomes "high"
 
-
 export "Switch!"

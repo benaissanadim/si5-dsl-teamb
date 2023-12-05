@@ -32,7 +32,7 @@ public class ToWiring extends Visitor<StringBuffer> {
 		boolean hasTemporalState = false;
 		w("long debounce = 200;\n");
 		for (State state : app.getStates()) {
-			if (state instanceof TemporalState) {
+			if (state instanceof NormalState && ((NormalState) state).getTemporalTransition() != null) {
 				hasTemporalState = true;
 			}
 		}
@@ -43,7 +43,10 @@ public class ToWiring extends Visitor<StringBuffer> {
 		String sep ="";
 		for(State state: app.getStates()){
 			w(sep);
-			state.accept(this);
+			if(state instanceof ErrorState){
+				((ErrorState) state).accept(this);
+			}else
+				((NormalState) state).accept(this);
 			sep=", ";
 		}
 		w("};\n");
@@ -70,7 +73,7 @@ public class ToWiring extends Visitor<StringBuffer> {
 			if(state instanceof ErrorState){
 				((ErrorState) state).accept(this);
 			}else
-				state.accept(this);
+				((NormalState) state).accept(this);
 		}
 		w("\t}\n" +
 				"}");
@@ -153,46 +156,40 @@ public class ToWiring extends Visitor<StringBuffer> {
 			w("\t\t\t\tdelay(500);\n");
 			w("\t\t\t}\n");
 			w(String.format("\t\t\tdelay(%d * 1000);\n", state.getPauseTime()));
-			if (state.getTransitions().size() == 0) {
-				w("\t\t\texit(0);\n");
-			}else {
-				for (ConditionalTransition transition : state.getTransitions()) {
-					transition.accept(this);
-				}
-				w("\t\t\tbreak;\n");
-			}
+			w("\t\t\texit(0);\n");
 		}
 
 	}
 
 	@Override
-	public void visit(State state) {
+	public void visit(NormalState state) {
 		if(context.get("pass") == PASS.ONE){
 			w(state.getName());
 			return;
 		}
 		if(context.get("pass") == PASS.TWO) {
-			if(state instanceof NormalState) {
-				NormalState normalState = (NormalState) state;
 
-				w("\t\tcase " + normalState.getName() + ":\n");
-				for (Action action : normalState.getActions()) {
+			w("\t\tcase " + state.getName() + ":\n");
+				for (Action action : state.getActions()) {
 					action.accept(this);
 				}
-				if (state instanceof TemporalState) {
-					TemporalState temporalState = (TemporalState) state;
+				if (state.getTemporalTransition() != null) {
 					w(String.format("\t\t\tstartTime = millis();\n"));
-					w(String.format("\t\t\twhile(millis() - startTime < %d){\n", temporalState.getDuration()));
+					if(state.getTemporalTransition().getCondition() ==null) {
+						w(String.format("\t\t\twhile(millis() - startTime < %d){\n", state.getTemporalTransition().getDuration()));
+					}else{
+						SingularCondition condition = (SingularCondition) state.getTemporalTransition().getCondition();
+						String name = condition.getSensor().getName();
+						w(String.format("\t\t\t%sBounceGuard = static_cast<long>(millis() - %sLastDebounceTime) > debounce;\n", name, name));
+
+						w(String.format("\t\t\twhile(millis() - startTime < %d && ( %sBounceGuard && digitalRead(%d) == %s )){\n",
+								state.getTemporalTransition().getDuration(),condition.getSensor().getName(),condition.getSensor().getPin(), condition.getSignal()));
+					}
 					for (ConditionalTransition transition : state.getTransitions()) {
 						transition.accept(this);
 					}
 					w("\t\t\t}\n");
-					if (temporalState.getTransition() != null) {
-						temporalState.getTransition().accept(this);
-					}
-					if (state.getTransitions().size() == 0) {
-						w("\t\t\tbreak;\n");
-					}
+					state.getTemporalTransition().accept(this);
 				} else {
 					if (state.getTransitions().size() == 0) {
 						w("\t\t\texit(0);\n");
@@ -223,7 +220,6 @@ public class ToWiring extends Visitor<StringBuffer> {
 					}
 
 				}
-			}
 
 		}
 
@@ -251,8 +247,7 @@ public class ToWiring extends Visitor<StringBuffer> {
 				}
 				w("\t\t\t\tcurrentState = " + transition.getNext().getName() + ";\n");
 				w("\t\t\t}\n");
-			} else
-				w("\t\t\t\tcurrentState = " + transition.getNext().getName() + ";\n");
+			}
 		}
 	}
 
