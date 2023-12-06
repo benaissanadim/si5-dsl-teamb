@@ -5,7 +5,7 @@ import io.github.mosser.arduinoml.kernel.structural.SIGNAL;
 import io.github.mosser.arduinoml.kernel.structural.Sensor;
 
 
-public class SingularCondition extends Condition {
+public class AtomicCondition extends Condition {
 
     private SIGNAL value;
 

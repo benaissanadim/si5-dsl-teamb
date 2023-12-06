@@ -15,10 +15,10 @@ import io.github.mosser.arduinoml.kernel.structural.Sensor;
 public class GroovuinoMLModel {
 	private List<Brick> bricks;
 	private List<State> states;
-	private List<ConditionalTransition> transitions;
+	private List<InstantaneousTransition> transitions;
 	private List<ErrorState> errors;
 
-	private List<TemporalTransition> temporalTransitions;
+	private List<TimeoutTransition> timeoutTransitions;
 
 	private State initialState;
 
@@ -28,8 +28,8 @@ public class GroovuinoMLModel {
 	public GroovuinoMLModel(Binding binding) {
 		this.bricks = new ArrayList<Brick>();
 		this.states = new ArrayList<State>();
-		this.transitions= new ArrayList<ConditionalTransition>();
-		this.temporalTransitions= new ArrayList<TemporalTransition>();
+		this.transitions= new ArrayList<InstantaneousTransition>();
+		this.timeoutTransitions = new ArrayList<TimeoutTransition>();
 		this.binding = binding;
 	}
 
@@ -73,22 +73,22 @@ public class GroovuinoMLModel {
 	}
 
 	public void createTransition(NormalState from, NormalState to, Sensor sensor, SIGNAL value) {
-		ConditionalTransition transition = new ConditionalTransition();
+		InstantaneousTransition transition = new InstantaneousTransition();
 		transition.setNext(to);
-		SingularCondition singularCondition = new SingularCondition();
-		singularCondition.setSensor(sensor);
-		singularCondition.setSignal(value);
-		transition.setCondition(singularCondition);
+		AtomicCondition atomicCondition = new AtomicCondition();
+		atomicCondition.setSensor(sensor);
+		atomicCondition.setSignal(value);
+		transition.setCondition(atomicCondition);
 		from.addTransition(transition);
 	}
 
-	public void createTemporalTransition(NormalState from, NormalState to, Integer duration, TemporalTransition transition) {
+	public void createTemporalTransition(NormalState from, NormalState to, Integer duration, TimeoutTransition transition) {
 		transition.setDuration(duration);
 		transition.setNext(to);
 		from.setTemporalTransition(transition);
 	}
 
-	public void createCompositeTransition(NormalState from, State to,ConditionalTransition transition) {
+	public void createCompositeTransition(NormalState from, State to, InstantaneousTransition transition) {
 		transition.setNext(to);
 		from.addTransition(transition);
 	}

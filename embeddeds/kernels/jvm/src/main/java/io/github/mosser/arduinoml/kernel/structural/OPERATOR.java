@@ -4,5 +4,5 @@ public enum OPERATOR {
 	AND,
 	OR,
 	XOR,
-	NO
+	NOT
 }

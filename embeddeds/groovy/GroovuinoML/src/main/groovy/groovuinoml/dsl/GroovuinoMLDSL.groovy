@@ -1,5 +1,8 @@
 package main.groovy.groovuinoml.dsl
 
+import main.groovy.groovuinoml.dsl.GroovuinoMLBasescript
+import main.groovy.groovuinoml.dsl.GroovuinoMLBinding
+import main.groovy.groovuinoml.dsl.GroovuinoMLModel
 import org.codehaus.groovy.control.CompilerConfiguration
 import org.codehaus.groovy.control.customizers.SecureASTCustomizer
 import io.github.mosser.arduinoml.kernel.structural.SIGNAL

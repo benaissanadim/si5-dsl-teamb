@@ -4,13 +4,9 @@ import io.github.mosser.arduinoml.kernel.App;
 import io.github.mosser.arduinoml.kernel.behavioral.*;
 import io.github.mosser.arduinoml.kernel.structural.*;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 
-/**
- * Quick and dirty visitor to support the generation of Wiring code
- */
+
 public class ToWiring extends Visitor<StringBuffer> {
 	enum PASS {ONE, TWO}
 
@@ -112,8 +108,8 @@ public class ToWiring extends Visitor<StringBuffer> {
 			Condition condition = conditions.getConditions().get(i);
 			if (condition instanceof ComposedCondition)
 				((ComposedCondition) condition).accept(this);
-			else if (condition instanceof SingularCondition)
-				((SingularCondition) condition).accept(this);
+			else if (condition instanceof AtomicCondition)
+				((AtomicCondition) condition).accept(this);
 
 			if (i + 1 < conditionsCount) {
 				if (conditions.getOperator() == OPERATOR.AND)
@@ -122,7 +118,7 @@ public class ToWiring extends Visitor<StringBuffer> {
 					w(" || ");
 				else if (conditions.getOperator() == OPERATOR.XOR)
 					w("^");
-				else if (conditions.getOperator() == OPERATOR.NO)
+				else if (conditions.getOperator() == OPERATOR.NOT)
 					w("!");
 			}
 		}
@@ -131,7 +127,7 @@ public class ToWiring extends Visitor<StringBuffer> {
 	}
 
 	@Override
-	public void visit(SingularCondition condition) {
+	public void visit(AtomicCondition condition) {
 		if(context.get("pass") == PASS.ONE) {
 			return;
 		}
@@ -178,14 +174,14 @@ public class ToWiring extends Visitor<StringBuffer> {
 					if(state.getTemporalTransition().getCondition() ==null) {
 						w(String.format("\t\t\twhile(millis() - startTime < %d){\n", state.getTemporalTransition().getDuration()));
 					}else{
-						SingularCondition condition = (SingularCondition) state.getTemporalTransition().getCondition();
+						AtomicCondition condition = (AtomicCondition) state.getTemporalTransition().getCondition();
 						String name = condition.getSensor().getName();
 						w(String.format("\t\t\t%sBounceGuard = static_cast<long>(millis() - %sLastDebounceTime) > debounce;\n", name, name));
 
 						w(String.format("\t\t\twhile(millis() - startTime < %d && ( %sBounceGuard && digitalRead(%d) == %s )){\n",
 								state.getTemporalTransition().getDuration(),condition.getSensor().getName(),condition.getSensor().getPin(), condition.getSignal()));
 					}
-					for (ConditionalTransition transition : state.getTransitions()) {
+					for (InstantaneousTransition transition : state.getTransitions()) {
 						transition.accept(this);
 					}
 					w("\t\t\t}\n");
@@ -195,14 +191,14 @@ public class ToWiring extends Visitor<StringBuffer> {
 						w("\t\t\texit(0);\n");
 					} else {
 						HashSet<String> names = new HashSet<>();
-						for (ConditionalTransition transition : state.getTransitions()) {
+						for (InstantaneousTransition transition : state.getTransitions()) {
 							if(transition.getCondition() instanceof ComposedCondition){
 								for (Condition condition : ((ComposedCondition) transition.getCondition()).getConditions()) {
 								if (transition.getCondition() != null) {
 									if (transition.getCondition() instanceof ComposedCondition) {
 										ComposedCondition composedCondition = (ComposedCondition) transition.getCondition();
-										String nameToAdd1 = ((SingularCondition) composedCondition.getConditions().get(0)).getSensor().getName();
-										String nameToAdd2 = ((SingularCondition) composedCondition.getConditions().get(1)).getSensor().getName();
+										String nameToAdd1 = ((AtomicCondition) composedCondition.getConditions().get(0)).getSensor().getName();
+										String nameToAdd2 = ((AtomicCondition) composedCondition.getConditions().get(1)).getSensor().getName();
 										names.add(nameToAdd1);
 										names.add(nameToAdd2);
 									}
@@ -213,7 +209,7 @@ public class ToWiring extends Visitor<StringBuffer> {
 						for (String name : names) {
 							w(String.format("\t\t\t%sBounceGuard = static_cast<long>(millis() - %sLastDebounceTime) > debounce;\n", name, name));
 						}
-						for (ConditionalTransition transition : state.getTransitions()) {
+						for (InstantaneousTransition transition : state.getTransitions()) {
 							transition.accept(this);
 						}
 							w("\t\t\tbreak;\n");
@@ -226,7 +222,7 @@ public class ToWiring extends Visitor<StringBuffer> {
 	}
 
 	@Override
-	public void visit(ConditionalTransition transition) {
+	public void visit(InstantaneousTransition transition) {
 		if(context.get("pass") == PASS.ONE) {
 			return;
 		}
@@ -236,14 +232,14 @@ public class ToWiring extends Visitor<StringBuffer> {
 				if (transition.getCondition() instanceof ComposedCondition) {
 					w("\t\t\tif");
 					((ComposedCondition) transition.getCondition()).accept(this);
-					w(String.format("{\n\t\t\t\t%sLastDebounceTime = millis();\n",((SingularCondition)((ComposedCondition)transition.getCondition()).getConditions().get(0)).getSensor().getName()));
-					w(String.format("\t\t\t\t%sLastDebounceTime = millis();\n",((SingularCondition)((ComposedCondition)transition.getCondition()).getConditions().get(1)).getSensor().getName()));
-				}else if (transition.getCondition() instanceof SingularCondition) {
-					w(String.format("\t\t\t%sBounceGuard = static_cast<long>(millis() - %sLastDebounceTime) > debounce;\n", ((SingularCondition) transition.getCondition()).getSensor().getName(),
-							((SingularCondition) transition.getCondition()).getSensor().getName()));
+					w(String.format("{\n\t\t\t\t%sLastDebounceTime = millis();\n",((AtomicCondition)((ComposedCondition)transition.getCondition()).getConditions().get(0)).getSensor().getName()));
+					w(String.format("\t\t\t\t%sLastDebounceTime = millis();\n",((AtomicCondition)((ComposedCondition)transition.getCondition()).getConditions().get(1)).getSensor().getName()));
+				}else if (transition.getCondition() instanceof AtomicCondition) {
+					w(String.format("\t\t\t%sBounceGuard = static_cast<long>(millis() - %sLastDebounceTime) > debounce;\n", ((AtomicCondition) transition.getCondition()).getSensor().getName(),
+							((AtomicCondition) transition.getCondition()).getSensor().getName()));
 					w("\t\t\tif");
-					((SingularCondition) transition.getCondition()).accept(this);
-					w(String.format("{\n\t\t\t\t%sLastDebounceTime = millis();\n", ((SingularCondition) transition.getCondition()).getSensor().getName()));
+					((AtomicCondition) transition.getCondition()).accept(this);
+					w(String.format("{\n\t\t\t\t%sLastDebounceTime = millis();\n", ((AtomicCondition) transition.getCondition()).getSensor().getName()));
 				}
 				w("\t\t\t\tcurrentState = " + transition.getNext().getName() + ";\n");
 				w("\t\t\t}\n");
@@ -264,7 +260,7 @@ public class ToWiring extends Visitor<StringBuffer> {
 	}
 
 	@Override
-	public void visit(TemporalTransition transition) {
+	public void visit(TimeoutTransition transition) {
 		w(String.format("\t\t\tcurrentState = %s;\n",transition.getNext().getName()));
 		w("\t\t\tbreak;\n");
 

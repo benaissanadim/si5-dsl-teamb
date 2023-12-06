@@ -29,6 +29,10 @@ public class ErrorState extends State implements Visitable {
     }
     @Override
     public void accept(Visitor visitor) {
+        if (errorNumber < 0)
+            throw new IllegalArgumentException("Error number must be positive");
+        if (pauseTime < 0)
+            throw new IllegalArgumentException("Pause time must be positive");
         visitor.visit(this);
     }
 }

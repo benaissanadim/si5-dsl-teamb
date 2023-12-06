@@ -51,23 +51,23 @@ public class Scenario2 {
 		off.setActions(Arrays.asList(stopSound));
 
 		// Creating transitions
-		ConditionalTransition off2On = new ConditionalTransition();
+		InstantaneousTransition off2On = new InstantaneousTransition();
 		off2On.setNext(on);
 
-		SingularCondition exp1 = new SingularCondition();
+		AtomicCondition exp1 = new AtomicCondition();
 		exp1.setSensor(button1);
 		exp1.setSignal(SIGNAL.HIGH);
-		SingularCondition exp2 = new SingularCondition();
+		AtomicCondition exp2 = new AtomicCondition();
 		exp2.setSensor(button2);
 		exp2.setSignal(SIGNAL.HIGH);
 		ComposedCondition exp3 = new ComposedCondition();
 		exp3.addConditions(Arrays.asList(exp1, exp2));
 		exp3.setOperator(OPERATOR.AND);
 
-		SingularCondition exp11 = new SingularCondition();
+		AtomicCondition exp11 = new AtomicCondition();
 		exp11.setSensor(button1);
 		exp11.setSignal(SIGNAL.LOW);
-		SingularCondition exp22 = new SingularCondition();
+		AtomicCondition exp22 = new AtomicCondition();
 		exp22.setSensor(button2);
 		exp22.setSignal(SIGNAL.LOW);
 		ComposedCondition expr33 = new ComposedCondition();
@@ -76,7 +76,7 @@ public class Scenario2 {
 
 		off2On.setCondition(exp3);
 
-		ConditionalTransition on2Off = new ConditionalTransition();
+		InstantaneousTransition on2Off = new InstantaneousTransition();
 		on2Off.setNext(off);
 
 		on2Off.setCondition(expr33);
