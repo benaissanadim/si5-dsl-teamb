@@ -4,6 +4,7 @@ import {
   App,
   NormalState,
   TimeoutTransition,
+  ErrorState,
 } from "./generated/ast";
 import type { ArduinoMlServices } from "./arduino-ml-module";
 
@@ -84,6 +85,20 @@ export class ArduinoMlValidator {
           property: "duration",
         });
       }
+    }
+  }
+  checkErrorState(errorState: ErrorState, accept: ValidationAcceptor): void {
+    if (errorState.errorNumber < 0) {
+      accept("error", "Error number must be positive.", {
+        node: errorState,
+        property: "errorNumber",
+      });
+    }
+    if (errorState.pauseTime < 0) {
+      accept("error", "Pause time must be positive.", {
+        node: errorState,
+        property: "pauseTime",
+      });
     }
   }
 }

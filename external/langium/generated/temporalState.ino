@@ -31,12 +31,12 @@ long breakButtonLastDebounceTime = 0;
 					digitalWrite(11,HIGH);
 					buttonBounceGuard = static_cast<long>(millis() - buttonLastDebounceTime) > debounce;
 					
-					
 					breakButtonBounceGuard = static_cast<long>(millis() - breakButtonLastDebounceTime) > debounce;
+					
 					               
                     startTime = millis();
                     
-                    while (( millis() - startTime < 1000 &&  ! (digitalRead(9) == HIGH && buttonBounceGuard ) ) || ( millis() - startTime < 2000 &&  ! (digitalRead(9) == HIGH && buttonBounceGuard ) ) || ( millis() - startTime < 500 )) {
+                    while (( millis() - startTime < 1000 &&  ! (digitalRead(9) == HIGH && buttonBounceGuard ) ) || ( millis() - startTime < 2000 &&  ! (digitalRead(8) == HIGH && breakButtonBounceGuard ) )) {
                         if ( digitalRead(8) == HIGH && breakButtonBounceGuard ) {
 						breakButtonLastDebounceTime = millis();
 						currentState = off;
@@ -49,10 +49,7 @@ long breakButtonLastDebounceTime = 0;
                     if   ( ( millis() - startTime >= 1000 &&  (digitalRead(9) == HIGH && buttonBounceGuard ) ) ) {
                        currentState = buzz;
                     }
-                      else if   ( ( millis() - startTime >= 2000 &&  (digitalRead(9) == HIGH && buttonBounceGuard ) ) ) {
-                       currentState = off;
-                    }
-                      else if   ( ( millis() - startTime >= 500 ) ) {
+                      else if   ( ( millis() - startTime >= 2000 &&  (digitalRead(8) == HIGH && breakButtonBounceGuard ) ) ) {
                        currentState = off;
                     }
         
