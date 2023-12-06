@@ -30,7 +30,9 @@ long buttonLastDebounceTime = 0;
 						currentState = secondPush;
 					}
 					
-				  break;
+
+				    break;
+            
 				case secondPush:
 					digitalWrite(11,HIGH);
 					digitalWrite(12,LOW);
@@ -40,7 +42,9 @@ long buttonLastDebounceTime = 0;
 						currentState = off;
 					}
 					
-				  break;
+
+				    break;
+            
 				case off:
 					digitalWrite(11,LOW);
 					digitalWrite(12,LOW);
@@ -50,7 +54,9 @@ long buttonLastDebounceTime = 0;
 						currentState = firstPush;
 					}
 					
-				  break;
+
+				    break;
+            
 		}
 	}
 	

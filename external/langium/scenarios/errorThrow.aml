@@ -10,18 +10,18 @@ app foo initial state off {
   on {
     led <= HIGH
     ( button1 is LOW and button2 is LOW ) => off
-    ( button1 is HIGH and button2 is HIGH ) => error
+    ( button1 is HIGH and button2 is HIGH ) => throw error
   }
 
   off {
     led <= LOW
     ( button1 is HIGH xor button2 is HIGH ) => on
-    ( button1 is HIGH and button2 is HIGH ) => error
+    ( button1 is HIGH and button2 is HIGH ) => throw error
   }
 
-error {
+  error {
     errorNumber : 3
     pauseTime : 3
     errorActuator : led
-}
+  }
 }

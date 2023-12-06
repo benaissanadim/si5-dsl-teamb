@@ -31,8 +31,7 @@ NormalState :
 	name=ID '{' 
 		actions+=Action
 		(actions+=Action)* 
-		(temporalTransition=TemporalTransition)?
-		(conditionalTransitions+=ConditionalTransition)*
+		(transitions+=Transition)*
 	'}'
 	;
 
@@ -60,17 +59,23 @@ LogicalOperator:
 NegationOperator:
 	NOT = 'not';
 
-ConditionalTransition :
-	condition=Condition '=>' next=[NormalState:ID] | condition=Condition '=>' 'throw' next=[ErrorState:ID];
+Transition :
+	InstantaneousTransition | TimeoutTransition;
 
-TemporalTransition:
-	'after' duration=INT 'ms' (op=LogicalOperator condition=Condition)? '=>' next=[NormalState:ID]  | 'runFor' duration=INT 'ms';
+InstantaneousTransition :
+	condition=Condition '=>' next=Next;
+
+Next :
+	nextState=[NormalState:ID] | 'throw' error=[ErrorState:ID];
+
+TimeoutTransition:
+	'after' duration=INT 'ms' (op=LogicalOperator condition=Condition)? '=>' next=Next ;
 
 
 Condition :
-	SignalCondition | CompositeCondition;
+	AtomicCondition | CompositeCondition;
 
-SignalCondition :
+AtomicCondition :
 	sensor=[Sensor:ID] 'is' (ne=NegationOperator)? value=Signal;
 
 CompositeCondition :

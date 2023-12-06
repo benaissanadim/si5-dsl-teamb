@@ -42,7 +42,9 @@ long button2LastDebounceTime = 0;
 						currentState = error;
 					}
 					
-				  break;
+
+				    break;
+            
 				case off:
 					digitalWrite(11,LOW);
 					button1BounceGuard = static_cast<long>(millis() - button1LastDebounceTime) > debounce;
@@ -59,7 +61,9 @@ long button2LastDebounceTime = 0;
 						currentState = error;
 					}
 					
-				  break;
+
+				    break;
+            
 				case error:
 					// Blink the error actuator
 					for (int i = 0; i < 3; i++) {
@@ -69,7 +73,9 @@ long button2LastDebounceTime = 0;
 						delay(500); // wait for 500ms
 					}
 					delay(3 * 1000);
-				  break;
+
+				    break;
+            
 		}
 	}
 	

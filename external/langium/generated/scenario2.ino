@@ -36,7 +36,9 @@ long button2LastDebounceTime = 0;
 						currentState = off;
 					}
 					
-				  break;
+
+				    break;
+            
 				case off:
 					digitalWrite(12,LOW);
 					button1BounceGuard = static_cast<long>(millis() - button1LastDebounceTime) > debounce;
@@ -47,7 +49,9 @@ long button2LastDebounceTime = 0;
 						currentState = on;
 					}
 					
-				  break;
+
+				    break;
+            
 		}
 	}
 	

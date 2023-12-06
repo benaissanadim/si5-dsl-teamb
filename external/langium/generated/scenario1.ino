@@ -30,7 +30,9 @@ long buttonLastDebounceTime = 0;
 						currentState = off;
 					}
 					
-				  break;
+
+				    break;
+            
 				case off:
 					digitalWrite(11,LOW);
 					digitalWrite(12,LOW);
@@ -40,7 +42,9 @@ long buttonLastDebounceTime = 0;
 						currentState = on;
 					}
 					
-				  break;
+
+				    break;
+            
 		}
 	}
 	

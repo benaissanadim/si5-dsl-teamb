@@ -7,11 +7,11 @@ import {
   App,
   Sensor,
   State,
-  ConditionalTransition,
   Condition,
   NormalState,
   ErrorState,
-  TemporalTransition,
+  TimeoutTransition,
+  InstantaneousTransition,
 } from "../language-server/generated/ast";
 import { extractDestinationAndName } from "./cli-util";
 
@@ -137,7 +137,9 @@ function compileState(
   if (state.$type === "ErrorState") compileErrorState(state, fileNode);
 
   fileNode.append(`
-				  break;`);
+
+				    break;
+            `);
 }
 
 function compileNormalState(
@@ -149,68 +151,135 @@ function compileNormalState(
     compileAction(action, fileNode);
   }
   const bounceGuards: Array<string | undefined> = [];
-  for (const transition of state.conditionalTransitions) {
-    fileNode.append(
-      `
+  for (const transition of state.transitions) {
+    if (transition.condition) {
+      fileNode.append(
+        `
 					` + bounceGuardVars(transition.condition, bounceGuards)
-    );
+      );
+    }
   }
+  const timeoutTransitions = state.transitions
+    .filter((transition) => transition.$type === "TimeoutTransition")
+    .map((transition) => transition as TimeoutTransition);
 
-  if (state.temporalTransition) {
-    const temporalTransition = state.temporalTransition;
-    const next = temporalTransition.next
-      ? temporalTransition.next.ref?.name
-      : initial;
-    compileTemporalTransition(state, temporalTransition, next, fileNode);
+  if (timeoutTransitions.length > 0) {
+    const instantTransitions = state.transitions
+      .filter((transition) => transition.$type === "InstantaneousTransition")
+      .map((transition) => transition as InstantaneousTransition);
+    compileTimeoutTransitions(timeoutTransitions, instantTransitions, fileNode);
   } else {
-    for (const transition of state.conditionalTransitions) {
-      compileConditionalTransition(transition, fileNode);
+    for (const transition of state.transitions) {
+      compileInstantaneousTransition(
+        transition as InstantaneousTransition,
+        fileNode
+      );
     }
   }
 }
 
-function compileTemporalTransition(
-  state: NormalState,
-  temporalTransition: TemporalTransition,
-  next: string | undefined,
+function compileTimeoutTransitions(
+  temporalTransitions: TimeoutTransition[],
+  instantTransitions: InstantaneousTransition[],
   fileNode: CompositeGeneratorNode
 ) {
   let condition: string = "";
-  if (temporalTransition.condition && temporalTransition.op) {
-    const op = temporalTransition.op;
-    const logicalOperator = op.AND ? "&&" : op.OR ? "||" : op.XOR ? "^" : "";
-    condition =
-      " " +
-      logicalOperator +
-      " " +
-      compileCondition(temporalTransition.condition) +
-      " ";
+  const temporalTransition = temporalTransitions[0];
+  condition = compileTimeoutTransition(temporalTransition);
+  for (const transition of temporalTransitions) {
+    if (transition === temporalTransition) continue;
+    condition += " || " + compileTimeoutTransition(transition);
   }
 
   fileNode.append(
     `               
                     startTime = millis();
-                    // Continue as long as the elapsed time is less than ` +
-      temporalTransition.duration +
-      ` milliseconds
-                    while (millis() - startTime < ` +
-      temporalTransition.duration +
+                    
+                    while (` +
       condition +
       `) {
                         `
   );
 
-  for (const transition of state.conditionalTransitions) {
-    compileConditionalTransition(transition, fileNode);
+  for (const transition of instantTransitions) {
+    compileInstantaneousTransition(transition, fileNode);
   }
   fileNode.append(
     `   
-                      delayMicroseconds(100);
+                        delayMicroseconds(100);
+
                     }
-                    currentState = ` +
-      next +
-      `;`
+
+      `
   );
+  compileNextState(temporalTransitions, fileNode);
+}
+
+function compileNextState(
+  temporalTransitions: TimeoutTransition[],
+  fileNode: CompositeGeneratorNode
+) {
+  if (temporalTransitions.length === 1) {
+    fileNode.append(
+      `              currentState = ` +
+        temporalTransitions[0].next.nextState?.ref?.name +
+        `;`
+    );
+    return;
+  }
+  for (const transition of temporalTransitions) {
+    const currentState = transition.next.nextState
+      ? transition.next.nextState.ref?.name
+      : transition.next.error?.ref?.name;
+    const elseIf =
+      temporalTransitions.indexOf(transition) === 0 ? "if" : "else if";
+    fileNode.append(
+      `              ` +
+        elseIf +
+        `   ( ` +
+        compileTimeoutBreakTransition(transition) +
+        ` ) {` +
+        `
+                       currentState = ` +
+        currentState +
+        `;` +
+        `
+                    }
+        `
+    );
+  }
+}
+
+function compileTimeoutTransition(temporalTransition: TimeoutTransition) {
+  let condition = "( millis() - startTime < " + temporalTransition.duration;
+  if (temporalTransition.condition && temporalTransition.op) {
+    const op = temporalTransition.op;
+    const logicalOperator = op.AND ? "&&" : op.OR ? "||" : op.XOR ? "^" : "";
+    condition +=
+      " " +
+      logicalOperator +
+      "  ! (" +
+      compileCondition(temporalTransition.condition) +
+      " )";
+  }
+  condition += " )";
+  return condition;
+}
+
+function compileTimeoutBreakTransition(temporalTransition: TimeoutTransition) {
+  let condition = "( millis() - startTime >= " + temporalTransition.duration;
+  if (temporalTransition.condition && temporalTransition.op) {
+    const op = temporalTransition.op;
+    const logicalOperator = op.AND ? "&&" : op.OR ? "||" : op.XOR ? "^" : "";
+    condition +=
+      " " +
+      logicalOperator +
+      "  (" +
+      compileCondition(temporalTransition.condition) +
+      " )";
+  }
+  condition += " )";
+  return condition;
 }
 
 function compileErrorState(
@@ -253,7 +322,7 @@ function compileAction(action: Action, fileNode: CompositeGeneratorNode) {
 }
 
 function compileCondition(condition: Condition): string {
-  if (condition.$type === "SignalCondition") {
+  if (condition.$type === "AtomicCondition") {
     const negation = condition.ne ? "! " : "";
     return `${negation}digitalRead(${condition.sensor.ref?.inputPin}) == ${condition.value.value} && ${condition.sensor.ref?.name}BounceGuard`;
   } else if (condition.$type === "CompositeCondition") {
@@ -275,7 +344,7 @@ function bounceGuardVars(
   condition: Condition,
   bounceGuardsArray: Array<string | undefined>
 ): string {
-  if (condition.$type === "SignalCondition") {
+  if (condition.$type === "AtomicCondition") {
     if (!bounceGuardsArray.includes(condition.sensor.ref?.name)) {
       bounceGuardsArray.push(condition.sensor.ref?.name);
       return `${condition.sensor.ref?.name}BounceGuard = static_cast<long>(millis() - ${condition.sensor.ref?.name}LastDebounceTime) > debounce;\n					`;
@@ -289,7 +358,7 @@ function bounceGuardVars(
 }
 
 function lastBouncedTime(condition: Condition): string {
-  if (condition.$type === "SignalCondition") {
+  if (condition.$type === "AtomicCondition") {
     return `${condition.sensor.ref?.name}LastDebounceTime = millis();\n						`;
   } else if (condition.$type === "CompositeCondition") {
     const leftCondition = lastBouncedTime(condition.left);
@@ -298,15 +367,17 @@ function lastBouncedTime(condition: Condition): string {
   }
   return "";
 }
-function compileConditionalTransition(
-  transition: ConditionalTransition,
+function compileInstantaneousTransition(
+  transition: InstantaneousTransition,
   fileNode: CompositeGeneratorNode
 ) {
   var condition: Condition = transition.condition;
   while (condition.$type === "CompositeCondition") {
     condition = condition.left;
   }
-
+  const currentState = transition.next.nextState
+    ? transition.next.nextState.ref?.name
+    : transition.next.error?.ref?.name;
   fileNode.append(
     `if ( ` +
       compileCondition(transition.condition) +
@@ -314,7 +385,7 @@ function compileConditionalTransition(
 						` +
       lastBouncedTime(transition.condition) +
       `currentState = ` +
-      transition.next.ref?.name +
+      currentState +
       `;
 					}
 					`
