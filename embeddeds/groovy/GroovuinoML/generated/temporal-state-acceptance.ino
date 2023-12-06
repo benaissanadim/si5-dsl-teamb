@@ -21,7 +21,7 @@ void loop() {
 			digitalWrite(11,HIGH);
 			startTime = millis();
 			while(( millis() - startTime < 1000)){
-			delayMicroseconds(100)
+			delayMicroseconds(100);
 			}
 			currentState = off;
 			break;

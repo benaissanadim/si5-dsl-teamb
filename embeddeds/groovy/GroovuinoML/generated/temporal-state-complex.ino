@@ -29,7 +29,7 @@ void loop() {
 			breakButtonBounceGuard = static_cast<long>(millis() - breakButtonLastDebounceTime) > debounce;
 			startTime = millis();
 			while(( millis() - startTime < 1000  &&  ! ( buttonBounceGuard && digitalRead(9) == HIGH )) || ( millis() - startTime < 2000  &&  ! ( breakButtonBounceGuard && digitalRead(8) == LOW ))){
-			delayMicroseconds(100)
+			delayMicroseconds(100);
 			}
 			if( millis() - startTime >= 1000  &&   ( buttonBounceGuard && digitalRead(9) == HIGH )){
 				currentState = buzz;
@@ -48,7 +48,7 @@ void loop() {
 				breakButtonLastDebounceTime = millis();
 				currentState = off;
 			}
-			delayMicroseconds(100)
+			delayMicroseconds(100);
 			}
 			currentState = off;
 			break;

@@ -203,7 +203,7 @@ public class ToWiring extends Visitor<StringBuffer> {
 				for (InstantaneousTransition transition : state.getInstantaneousTransitions()) {
 					transition.accept(this);
 				}
-				w("\t\t\tdelayMicroseconds(100)\n");
+				w("\t\t\tdelayMicroseconds(100);\n");
 				w("\t\t\t}\n");
 				if(state.getTimeoutTransitions().size() ==1 ){
 					w(String.format("\t\t\tcurrentState = %s;\n",state.getTimeoutTransitions().get(0).getNext().getName()));
