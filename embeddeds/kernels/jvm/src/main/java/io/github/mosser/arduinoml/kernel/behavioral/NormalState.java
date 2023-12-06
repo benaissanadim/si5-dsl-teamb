@@ -5,62 +5,11 @@ import io.github.mosser.arduinoml.kernel.generator.Visitor;
 
 import java.util.ArrayList;
 import java.util.List;
-
-public class NormalState extends State implements Visitable {
-    protected List<Action> actions = new ArrayList<>();
-    private List<InstantaneousTransition> transitions = new ArrayList<>();
-
-    private TimeoutTransition timeoutTransition;
-
-    public TimeoutTransition getTemporalTransition() {
-        return timeoutTransition;
-    }
-
-    public void setTemporalTransition(TimeoutTransition timeoutTransition) {
-        this.timeoutTransition = timeoutTransition;
-    }
-
-    public void addTransition(InstantaneousTransition transition) {
-        this.transitions.add(transition);
-    }
-
-    public List<InstantaneousTransition> getTransitions() {
-        return transitions;
-    }
-
-    public void setTransitions(List<InstantaneousTransition> transitions) {
-        this.transitions = transitions;
-    }
-
-    public List<Action> getActions() {
-        return actions;
-    }
-
-    public void setActions(List<Action> actions) {
-        this.actions = actions;
-    }
-
-    @Override
-    public void accept(Visitor visitor) {
-        visitor.visit(this);
-    }
-
-}
-
-/*
-package io.github.mosser.arduinoml.kernel.behavioral;
-
-import io.github.mosser.arduinoml.kernel.generator.Visitable;
-import io.github.mosser.arduinoml.kernel.generator.Visitor;
-
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Logger;
 
 public class NormalState extends State implements Visitable {
     protected List<Action> actions = new ArrayList<>();
     private List<Transition> transitions = new ArrayList<>();
-
 
 
     public void addTransition(Transition transition) {
@@ -77,6 +26,26 @@ public class NormalState extends State implements Visitable {
 
     public List<Action> getActions() {
         return actions;
+    }
+
+    public List<TimeoutTransition> getTimeoutTransitions() {
+        List<TimeoutTransition> transitions = new ArrayList<>();
+        for (Transition transition : this.transitions) {
+            if (transition instanceof TimeoutTransition) {
+                transitions.add((TimeoutTransition) transition);
+            }
+        }
+        return transitions;
+    }
+
+    public List<InstantaneousTransition> getInstantaneousTransitions() {
+        List<InstantaneousTransition> transitions = new ArrayList<>();
+        for (Transition transition : this.transitions) {
+            if (transition instanceof InstantaneousTransition) {
+                transitions.add((InstantaneousTransition) transition);
+            }
+        }
+        return transitions;
     }
 
     public void setActions(List<Action> actions) {
@@ -100,4 +69,3 @@ public class NormalState extends State implements Visitable {
 
 }
 
- */

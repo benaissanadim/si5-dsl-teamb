@@ -32,16 +32,11 @@ long breakButtonLastDebounceTime = 0;
 					buttonBounceGuard = static_cast<long>(millis() - buttonLastDebounceTime) > debounce;
 					
 					breakButtonBounceGuard = static_cast<long>(millis() - breakButtonLastDebounceTime) > debounce;
-					
 					               
                     startTime = millis();
                     
                     while (( millis() - startTime < 1000 &&  ! (digitalRead(9) == HIGH && buttonBounceGuard ) ) || ( millis() - startTime < 2000 &&  ! (digitalRead(8) == HIGH && breakButtonBounceGuard ) )) {
-                        if ( digitalRead(8) == HIGH && breakButtonBounceGuard ) {
-						breakButtonLastDebounceTime = millis();
-						currentState = off;
-					}
-					   
+                           
                         delayMicroseconds(100);
 
                     }

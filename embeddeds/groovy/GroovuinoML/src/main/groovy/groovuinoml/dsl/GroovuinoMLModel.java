@@ -85,7 +85,7 @@ public class GroovuinoMLModel {
 	public void createTemporalTransition(NormalState from, NormalState to, Integer duration, TimeoutTransition transition) {
 		transition.setDuration(duration);
 		transition.setNext(to);
-		from.setTemporalTransition(transition);
+		from.addTransition(transition);
 	}
 
 	public void createCompositeTransition(NormalState from, State to, InstantaneousTransition transition) {

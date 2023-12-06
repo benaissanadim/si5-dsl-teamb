@@ -2,6 +2,7 @@ package io.github.mosser.arduinoml.kernel.behavioral;
 
 import io.github.mosser.arduinoml.kernel.generator.Visitable;
 import io.github.mosser.arduinoml.kernel.generator.Visitor;
+import io.github.mosser.arduinoml.kernel.structural.OPERATOR;
 
 public class InstantaneousTransition extends Transition implements Visitable {
     private Condition condition;
@@ -17,4 +18,5 @@ public class InstantaneousTransition extends Transition implements Visitable {
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }
+
 }

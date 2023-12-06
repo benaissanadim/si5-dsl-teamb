@@ -5,6 +5,7 @@ import io.github.mosser.arduinoml.kernel.behavioral.*;
 import io.github.mosser.arduinoml.kernel.structural.*;
 
 import java.util.HashSet;
+import java.util.List;
 
 
 public class ToWiring extends Visitor<StringBuffer> {
@@ -28,7 +29,7 @@ public class ToWiring extends Visitor<StringBuffer> {
 		boolean hasTemporalState = false;
 		w("long debounce = 200;\n");
 		for (State state : app.getStates()) {
-			if (state instanceof NormalState && ((NormalState) state).getTemporalTransition() != null) {
+			if (state instanceof NormalState && !((NormalState) state).getTimeoutTransitions().isEmpty()) {
 				hasTemporalState = true;
 			}
 		}
@@ -112,18 +113,28 @@ public class ToWiring extends Visitor<StringBuffer> {
 				((AtomicCondition) condition).accept(this);
 
 			if (i + 1 < conditionsCount) {
-				if (conditions.getOperator() == OPERATOR.AND)
-					w(" && ");
-				else if (conditions.getOperator() == OPERATOR.OR)
-					w(" || ");
-				else if (conditions.getOperator() == OPERATOR.XOR)
-					w("^");
-				else if (conditions.getOperator() == OPERATOR.NOT)
-					w("!");
+				getOperator(conditions.getOperator());
 			}
 		}
 		w(")");
 
+	}
+
+	public void getOperator(OPERATOR operator){
+		switch (operator) {
+		case AND:
+			w(" && ");
+			break;
+		case OR:
+			w(" || ");
+			break;
+		case XOR:
+			w("^");
+			break;
+		case NOT:
+			w("!");
+			break;
+		}
 	}
 
 	@Override
@@ -157,6 +168,7 @@ public class ToWiring extends Visitor<StringBuffer> {
 
 	}
 
+
 	@Override
 	public void visit(NormalState state) {
 		if(context.get("pass") == PASS.ONE){
@@ -166,59 +178,92 @@ public class ToWiring extends Visitor<StringBuffer> {
 		if(context.get("pass") == PASS.TWO) {
 
 			w("\t\tcase " + state.getName() + ":\n");
-				for (Action action : state.getActions()) {
-					action.accept(this);
-				}
-				if (state.getTemporalTransition() != null) {
-					w(String.format("\t\t\tstartTime = millis();\n"));
-					if(state.getTemporalTransition().getCondition() ==null) {
-						w(String.format("\t\t\twhile(millis() - startTime < %d){\n", state.getTemporalTransition().getDuration()));
-					}else{
-						AtomicCondition condition = (AtomicCondition) state.getTemporalTransition().getCondition();
-						String name = condition.getSensor().getName();
-						w(String.format("\t\t\t%sBounceGuard = static_cast<long>(millis() - %sLastDebounceTime) > debounce;\n", name, name));
+			for (Action action : state.getActions()) {
+				action.accept(this);
+			}
+			printConditionBegin(state);
 
-						w(String.format("\t\t\twhile(millis() - startTime < %d && ( %sBounceGuard && digitalRead(%d) == %s )){\n",
-								state.getTemporalTransition().getDuration(),condition.getSensor().getName(),condition.getSensor().getPin(), condition.getSignal()));
+			if (!state.getTimeoutTransitions().isEmpty()) {
+				w(String.format("\t\t\tstartTime = millis();\n"));
+				w(String.format("\t\t\twhile("));
+				int i = 0;
+				for(TimeoutTransition t : state.getTimeoutTransitions()){
+					i++;
+					w(String.format("( millis() - startTime < %d", t.getDuration()));
+					if(t.getCondition() != null) {
+						w(" ");
+						getOperator(t.getOperator());
+						w(" !");
+						t.getCondition().accept(this);
 					}
-					for (InstantaneousTransition transition : state.getTransitions()) {
-						transition.accept(this);
+					w(")");
+					if(i < state.getTimeoutTransitions().size()) w(" || ");
+				}
+				w("){\n");
+				for (InstantaneousTransition transition : state.getInstantaneousTransitions()) {
+					transition.accept(this);
+				}
+				w("\t\t\tdelayMicroseconds(100)\n");
+				w("\t\t\t}\n");
+				if(state.getTimeoutTransitions().size() ==1 ){
+					w(String.format("\t\t\tcurrentState = %s;\n",state.getTimeoutTransitions().get(0).getNext().getName()));
+				}else if(state.getTimeoutTransitions().size() > 1){
+					for(TimeoutTransition t : state.getTimeoutTransitions()){
+						w(String.format("\t\t\tif( millis() - startTime >= %d", t.getDuration()));
+						if(t.getCondition() != null) {
+							w(" ");
+							getOperator(t.getOperator());
+							w(" ");
+							t.getCondition().accept(this);
+						}
+						w(String.format("){\n\t\t\t\tcurrentState = %s;\n\t\t\t}\n",t.getNext().getName()));
 					}
-					w("\t\t\t}\n");
-					state.getTemporalTransition().accept(this);
+				}
+				w("\t\t\tbreak;\n");
 				} else {
-					if (state.getTransitions().size() == 0) {
-						w("\t\t\texit(0);\n");
-					} else {
-						HashSet<String> names = new HashSet<>();
-						for (InstantaneousTransition transition : state.getTransitions()) {
-							if(transition.getCondition() instanceof ComposedCondition){
-								for (Condition condition : ((ComposedCondition) transition.getCondition()).getConditions()) {
-								if (transition.getCondition() != null) {
-									if (transition.getCondition() instanceof ComposedCondition) {
-										ComposedCondition composedCondition = (ComposedCondition) transition.getCondition();
-										String nameToAdd1 = ((AtomicCondition) composedCondition.getConditions().get(0)).getSensor().getName();
-										String nameToAdd2 = ((AtomicCondition) composedCondition.getConditions().get(1)).getSensor().getName();
-										names.add(nameToAdd1);
-										names.add(nameToAdd2);
-									}
-								}
-							}
-							}
-						}
-						for (String name : names) {
-							w(String.format("\t\t\t%sBounceGuard = static_cast<long>(millis() - %sLastDebounceTime) > debounce;\n", name, name));
-						}
-						for (InstantaneousTransition transition : state.getTransitions()) {
+					for (InstantaneousTransition transition : state.getInstantaneousTransitions()) {
 							transition.accept(this);
-						}
-							w("\t\t\tbreak;\n");
 					}
-
+					w("\t\t\tbreak;\n");
 				}
-
 		}
+	}
 
+	void printConditionBegin(NormalState state) {
+		HashSet<String> names = new HashSet<>();
+		for (InstantaneousTransition transition : state.getInstantaneousTransitions()) {
+			if(transition.getCondition() instanceof ComposedCondition){
+				for (Condition condition : ((ComposedCondition) transition.getCondition()).getConditions()) {
+				if (transition.getCondition() != null) {
+					if (transition.getCondition() instanceof ComposedCondition) {
+						ComposedCondition composedCondition = (ComposedCondition) transition.getCondition();
+						String nameToAdd1 = ((AtomicCondition) composedCondition.getConditions().get(0)).getSensor().getName();
+						String nameToAdd2 = ((AtomicCondition) composedCondition.getConditions().get(1)).getSensor().getName();
+						names.add(nameToAdd1);
+						names.add(nameToAdd2);
+					}
+				}
+			}
+			}
+		}
+		for (TimeoutTransition transition : state.getTimeoutTransitions()) {
+			if (transition.getCondition() != null) {
+				if (transition.getCondition() instanceof ComposedCondition) {
+					ComposedCondition composedCondition = (ComposedCondition) transition.getCondition();
+					String nameToAdd1 = ((AtomicCondition) composedCondition.getConditions().get(0)).getSensor().getName();
+					String nameToAdd2 = ((AtomicCondition) composedCondition.getConditions().get(1)).getSensor().getName();
+					names.add(nameToAdd1);
+					names.add(nameToAdd2);
+				}
+				else if (transition.getCondition() instanceof AtomicCondition) {
+					String nameToAdd = ((AtomicCondition) transition.getCondition()).getSensor().getName();
+					names.add(nameToAdd);
+				}
+			}
+		}
+		for (String name : names) {
+			w(String.format("\t\t\t%sBounceGuard = static_cast<long>(millis() - %sLastDebounceTime) > debounce;\n", name, name));
+		}
 	}
 
 	@Override

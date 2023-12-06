@@ -145,29 +145,46 @@ abstract class GroovuinoMLBasescript extends Script {
 			}
 			def after ;
 			after = { time ->
-				TimeoutTransition temporalTransition = new TimeoutTransition();
-				((GroovuinoMLBinding) this.getBinding()).getGroovuinoMLModel().createTemporalTransition(
-						state1 instanceof String ? (NormalState)((GroovuinoMLBinding)this.getBinding()).getVariable(state1) : (NormalState)state1,
-						state2 instanceof String ? (NormalState)((GroovuinoMLBinding)this.getBinding()).getVariable(state2) : (NormalState)state2,
-						time instanceof String ? (Integer)((GroovuinoMLBinding)this.getBinding()).getVariable(time) : (Integer)	time, temporalTransition)
-
+				[ ms: {test ->
+					TimeoutTransition temporalTransition = new TimeoutTransition();
+					((GroovuinoMLBinding) this.getBinding()).getGroovuinoMLModel().createTemporalTransition(
+							state1 instanceof String ? (NormalState)((GroovuinoMLBinding)this.getBinding()).getVariable(state1) : (NormalState)state1,
+							state2 instanceof String ? (NormalState)((GroovuinoMLBinding)this.getBinding()).getVariable(state2) : (NormalState)state2,
+							time instanceof String ? (Integer)((GroovuinoMLBinding)this.getBinding()).getVariable(time) : (Integer)	time, temporalTransition)
 				[and: { sensor1  ->
-					[becomes: { signal1 ->
-						def actualSensor1 = sensor1 instanceof String ? (Sensor)((GroovuinoMLBinding)this.getBinding()).getVariable(sensor1) : (Sensor)sensor1
-						def actualSignal1 = signal1 instanceof String ? (SIGNAL)((GroovuinoMLBinding)this.getBinding()).getVariable(signal1) : (SIGNAL)signal1
-						AtomicCondition singularCondition = new AtomicCondition()
-						singularCondition.setSensor(actualSensor1)
-						singularCondition.setSignal(actualSignal1)
-						temporalTransition.setCondition(singularCondition);
-						/*	condition.setSensor(sensor1 instanceof String ? (Sensor)((GroovuinoMLBinding)this.getBinding()).getVariable(sensor1) : (Sensor)sensor1)
-                            condition.setSignal(signal1 instanceof String ? (SIGNAL)((GroovuinoMLBinding)this.getBinding()).getVariable(signal1) : (SIGNAL)signal1)
-    transition.setCondition(condition)
+						[becomes: { signal1 ->
+							def actualSensor1 = sensor1 instanceof String ? (Sensor)((GroovuinoMLBinding)this.getBinding()).getVariable(sensor1) : (Sensor)sensor1
+							def actualSignal1 = signal1 instanceof String ? (SIGNAL)((GroovuinoMLBinding)this.getBinding()).getVariable(signal1) : (SIGNAL)signal1
+							AtomicCondition singularCondition = new AtomicCondition()
+							singularCondition.setSensor(actualSensor1)
+							singularCondition.setSignal(actualSignal1)
+							temporalTransition.setCondition(singularCondition);
+							temporalTransition.setOperator(OPERATOR.AND)
+						}
+						]
+					}]
+					}]}
 
-                         */
-					}
-					]
-				}]
-			}
+			after = { time ->
+					TimeoutTransition temporalTransition = new TimeoutTransition();
+					((GroovuinoMLBinding) this.getBinding()).getGroovuinoMLModel().createTemporalTransition(
+							state1 instanceof String ? (NormalState)((GroovuinoMLBinding)this.getBinding()).getVariable(state1) : (NormalState)state1,
+							state2 instanceof String ? (NormalState)((GroovuinoMLBinding)this.getBinding()).getVariable(state2) : (NormalState)state2,
+							time instanceof String ? (Integer)((GroovuinoMLBinding)this.getBinding()).getVariable(time) : (Integer)	time, temporalTransition)
+					[and: { sensor1  ->
+						[becomes: { signal1 ->
+							def actualSensor1 = sensor1 instanceof String ? (Sensor)((GroovuinoMLBinding)this.getBinding()).getVariable(sensor1) : (Sensor)sensor1
+							def actualSignal1 = signal1 instanceof String ? (SIGNAL)((GroovuinoMLBinding)this.getBinding()).getVariable(signal1) : (SIGNAL)signal1
+							AtomicCondition singularCondition = new AtomicCondition()
+							singularCondition.setSensor(actualSensor1)
+							singularCondition.setSignal(actualSignal1)
+							temporalTransition.setCondition(singularCondition);
+							temporalTransition.setOperator(OPERATOR.AND)
+						}
+						]
+					}]
+				}
+
 			[when: closure, after : after ]
 		}
 

@@ -25,29 +25,32 @@ void loop() {
 		case on:
 			digitalWrite(11,HIGH);
 			digitalWrite(10,LOW);
-			startTime = millis();
 			buttonBounceGuard = static_cast<long>(millis() - buttonLastDebounceTime) > debounce;
-			while(millis() - startTime < 1000 && ( buttonBounceGuard && digitalRead(9) == HIGH )){
 			breakButtonBounceGuard = static_cast<long>(millis() - breakButtonLastDebounceTime) > debounce;
-			if ( breakButtonBounceGuard && digitalRead(8) == HIGH ){
-				breakButtonLastDebounceTime = millis();
+			startTime = millis();
+			while(( millis() - startTime < 1000  &&  ! ( buttonBounceGuard && digitalRead(9) == HIGH )) || ( millis() - startTime < 2000  &&  ! ( breakButtonBounceGuard && digitalRead(8) == LOW ))){
+			delayMicroseconds(100)
+			}
+			if( millis() - startTime >= 1000  &&   ( buttonBounceGuard && digitalRead(9) == HIGH )){
+				currentState = buzz;
+			}
+			if( millis() - startTime >= 2000  &&   ( breakButtonBounceGuard && digitalRead(8) == LOW )){
 				currentState = off;
 			}
-			}
-			currentState = buzz;
 			break;
 		case buzz:
 			digitalWrite(10,HIGH);
 			digitalWrite(11,HIGH);
 			startTime = millis();
-			while(millis() - startTime < 1000){
+			while(( millis() - startTime < 1000)){
 			breakButtonBounceGuard = static_cast<long>(millis() - breakButtonLastDebounceTime) > debounce;
 			if ( breakButtonBounceGuard && digitalRead(8) == HIGH ){
 				breakButtonLastDebounceTime = millis();
 				currentState = off;
 			}
+			delayMicroseconds(100)
 			}
-			currentState = on;
+			currentState = off;
 			break;
 		case off:
 			digitalWrite(11,LOW);

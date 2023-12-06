@@ -78,5 +78,5 @@ export "Switch!"
   * (The code can be compiled using `mvn clean install`)
   * Or an executable jar can be built using `mvn clean compile assembly:single`
   * Then, to run the Switch example:
-    * `java -jar target\dsl-groovy-1.0-jar-with-dependencies.jar scenarios\Switch1.groovy`
+    * `java -jar target\dsl-groovy-1.0-jar-with-dependencies.jar scenarios\temporalState_complex.groovy`
   * ... it is also possible to use the .bat files build.bat and run.bat (Windows)

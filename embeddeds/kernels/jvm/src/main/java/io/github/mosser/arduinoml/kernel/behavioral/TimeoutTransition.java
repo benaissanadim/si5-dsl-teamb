@@ -2,12 +2,23 @@ package io.github.mosser.arduinoml.kernel.behavioral;
 
 import io.github.mosser.arduinoml.kernel.generator.Visitable;
 import io.github.mosser.arduinoml.kernel.generator.Visitor;
+import io.github.mosser.arduinoml.kernel.structural.OPERATOR;
 
 public class TimeoutTransition extends Transition implements Visitable {
 
     private int duration;
 
+    private OPERATOR operator;
+
     private Condition condition;
+
+    public OPERATOR getOperator() {
+        return operator;
+    }
+
+    public void setOperator(OPERATOR operator) {
+        this.operator = operator;
+    }
 
     public Condition getCondition() {
         return condition;
