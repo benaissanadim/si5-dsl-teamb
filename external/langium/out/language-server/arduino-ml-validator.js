@@ -72,6 +72,20 @@ class ArduinoMlValidator {
             }
         }
     }
+    checkErrorState(errorState, accept) {
+        if (errorState.errorNumber < 0) {
+            accept("error", "Error number must be positive.", {
+                node: errorState,
+                property: "errorNumber",
+            });
+        }
+        if (errorState.pauseTime < 0) {
+            accept("error", "Pause time must be positive.", {
+                node: errorState,
+                property: "pauseTime",
+            });
+        }
+    }
 }
 exports.ArduinoMlValidator = ArduinoMlValidator;
 //# sourceMappingURL=arduino-ml-validator.js.map
