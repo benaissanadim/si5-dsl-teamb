@@ -3,6 +3,7 @@
 // Application name: foo
 
 long debounce = 200;
+bool startTimer = false;
 long startTime; // Used for temporal transitions
 enum STATE {on, buzz, off};
 
@@ -29,55 +30,63 @@ long breakButtonLastDebounceTime = 0;
 
 				case on:
 					digitalWrite(11,HIGH);
+                    if (startTimer == false) {
+                      startTime = millis();
+                      startTimer = true;
+                    }
+                        
 					buttonBounceGuard = static_cast<long>(millis() - buttonLastDebounceTime) > debounce;
-					
+					              
 					breakButtonBounceGuard = static_cast<long>(millis() - breakButtonLastDebounceTime) > debounce;
-					               
-                    startTime = millis();
-                    
-                    while (( millis() - startTime < 1000 &&  ! (digitalRead(9) == HIGH && buttonBounceGuard ) ) || ( millis() - startTime < 2000 &&  ! (digitalRead(8) == HIGH && breakButtonBounceGuard ) )) {
-                           
-                        delayMicroseconds(100);
-
-                    }
-
-                    if   ( ( millis() - startTime >= 1000 &&  (digitalRead(9) == HIGH && buttonBounceGuard ) ) ) {
-                       currentState = buzz;
-                    }
-                      else if   ( ( millis() - startTime >= 2000 &&  (digitalRead(8) == HIGH && breakButtonBounceGuard ) ) ) {
-                       currentState = off;
-                    }
-        
+					if ( ( ( millis() - startTime > 3000 ) && ( digitalRead(9) == HIGH && buttonBounceGuard ) ) ) {
+						buttonLastDebounceTime = millis();
+						currentState = buzz;
+                        startTimer = false;
+					}
+					if ( ( ( millis() - startTime > 3000 ) && ( digitalRead(8) == HIGH && breakButtonBounceGuard ) ) ) {
+						breakButtonLastDebounceTime = millis();
+						currentState = off;
+                        startTimer = false;
+					}
+					
 
 				    break;
             
 				case buzz:
 					digitalWrite(10,HIGH);
+                    if (startTimer == false) {
+                      startTime = millis();
+                      startTimer = true;
+                    }
+                        
+					              
 					breakButtonBounceGuard = static_cast<long>(millis() - breakButtonLastDebounceTime) > debounce;
-					               
-                    startTime = millis();
-                    
-                    while (( millis() - startTime < 1000 )) {
-                        if ( digitalRead(8) == HIGH && breakButtonBounceGuard ) {
+					if ( millis() - startTime > 5000 ) {
+						currentState = off;
+                        startTimer = false;
+					}
+					if ( digitalRead(8) == HIGH && breakButtonBounceGuard ) {
 						breakButtonLastDebounceTime = millis();
 						currentState = off;
+                        startTimer = false;
 					}
-					   
-                        delayMicroseconds(100);
-
-                    }
-
-                    currentState = off;
+					
 
 				    break;
             
 				case off:
 					digitalWrite(11,LOW);
 					digitalWrite(10,LOW);
+                    if (startTimer == false) {
+                      startTime = millis();
+                      startTimer = true;
+                    }
+                        
 					buttonBounceGuard = static_cast<long>(millis() - buttonLastDebounceTime) > debounce;
 					if ( digitalRead(9) == HIGH && buttonBounceGuard ) {
 						buttonLastDebounceTime = millis();
 						currentState = on;
+                        startTimer = false;
 					}
 					
 

@@ -29,6 +29,7 @@ function compile(app, fileNode) {
         `
 
 long debounce = 200;
+bool startTimer = false;
 long startTime; // Used for temporal transitions
 enum STATE {` +
         app.states.map((s) => s.name).join(", ") +
@@ -106,111 +107,20 @@ function compileNormalState(state, initial, fileNode) {
     for (const action of state.actions) {
         compileAction(action, fileNode);
     }
+    fileNode.append(`
+                    if (startTimer == false) {
+                      startTime = millis();
+                      startTimer = true;
+                    }
+          `);
     const bounceGuards = [];
     for (const transition of state.transitions) {
-        if (transition.condition) {
-            fileNode.append(`
+        fileNode.append(`              
 					` + bounceGuardVars(transition.condition, bounceGuards));
-        }
     }
-    const timeoutTransitions = state.transitions
-        .filter((transition) => transition.$type === "TimeoutTransition")
-        .map((transition) => transition);
-    if (timeoutTransitions.length > 0) {
-        const instantTransitions = state.transitions
-            .filter((transition) => transition.$type === "InstantaneousTransition")
-            .map((transition) => transition);
-        compileTimeoutTransitions(timeoutTransitions, instantTransitions, fileNode);
+    for (const transition of state.transitions) {
+        compileTransition(transition, fileNode);
     }
-    else {
-        for (const transition of state.transitions) {
-            compileInstantaneousTransition(transition, fileNode);
-        }
-    }
-}
-function compileTimeoutTransitions(temporalTransitions, instantTransitions, fileNode) {
-    let condition = "";
-    const temporalTransition = temporalTransitions[0];
-    condition = compileTimeoutTransition(temporalTransition);
-    for (const transition of temporalTransitions) {
-        if (transition === temporalTransition)
-            continue;
-        condition += " || " + compileTimeoutTransition(transition);
-    }
-    fileNode.append(`               
-                    startTime = millis();
-                    
-                    while (` +
-        condition +
-        `) {
-                        `);
-    for (const transition of instantTransitions) {
-        compileInstantaneousTransition(transition, fileNode);
-    }
-    fileNode.append(`   
-                        delayMicroseconds(100);
-
-                    }
-
-      `);
-    compileNextState(temporalTransitions, fileNode);
-}
-function compileNextState(temporalTransitions, fileNode) {
-    var _a, _b, _c, _d, _e;
-    if (temporalTransitions.length === 1) {
-        fileNode.append(`              currentState = ` +
-            ((_b = (_a = temporalTransitions[0].next.nextState) === null || _a === void 0 ? void 0 : _a.ref) === null || _b === void 0 ? void 0 : _b.name) +
-            `;`);
-        return;
-    }
-    for (const transition of temporalTransitions) {
-        const currentState = transition.next.nextState
-            ? (_c = transition.next.nextState.ref) === null || _c === void 0 ? void 0 : _c.name
-            : (_e = (_d = transition.next.error) === null || _d === void 0 ? void 0 : _d.ref) === null || _e === void 0 ? void 0 : _e.name;
-        const elseIf = temporalTransitions.indexOf(transition) === 0 ? "if" : "else if";
-        fileNode.append(`              ` +
-            elseIf +
-            `   ( ` +
-            compileTimeoutBreakTransition(transition) +
-            ` ) {` +
-            `
-                       currentState = ` +
-            currentState +
-            `;` +
-            `
-                    }
-        `);
-    }
-}
-function compileTimeoutTransition(temporalTransition) {
-    let condition = "( millis() - startTime < " + temporalTransition.duration;
-    if (temporalTransition.condition && temporalTransition.op) {
-        const op = temporalTransition.op;
-        const logicalOperator = op.AND ? "&&" : op.OR ? "||" : op.XOR ? "^" : "";
-        condition +=
-            " " +
-                logicalOperator +
-                "  ! (" +
-                compileCondition(temporalTransition.condition) +
-                " )";
-    }
-    condition += " )";
-    return condition;
-}
-function compileTimeoutBreakTransition(temporalTransition) {
-    let condition = "( millis() - startTime >= " + temporalTransition.duration;
-    if (temporalTransition.condition && temporalTransition.op) {
-        const op = temporalTransition.op;
-        const logicalOperator = op.AND ? "&&" : op.OR ? "||" : op.XOR ? "^" : "";
-        condition +=
-            " " +
-                logicalOperator +
-                "  (" +
-                compileCondition(temporalTransition.condition) +
-                " )";
-    }
-    condition += " )";
-    return condition;
 }
 function compileErrorState(state, fileNode) {
     var _a, _b;
@@ -249,6 +159,9 @@ function compileCondition(condition) {
     if (condition.$type === "AtomicCondition") {
         const negation = condition.ne ? "! " : "";
         return `${negation}digitalRead(${(_a = condition.sensor.ref) === null || _a === void 0 ? void 0 : _a.inputPin}) == ${condition.value.value} && ${(_b = condition.sensor.ref) === null || _b === void 0 ? void 0 : _b.name}BounceGuard`;
+    }
+    else if (condition.$type === "TimeoutCondition") {
+        return `millis() - startTime > ${condition.duration}`;
     }
     else if (condition.$type === "CompositeCondition") {
         const leftCondition = compileCondition(condition.left);
@@ -293,7 +206,7 @@ function lastBouncedTime(condition) {
     }
     return "";
 }
-function compileInstantaneousTransition(transition, fileNode) {
+function compileTransition(transition, fileNode) {
     var _a, _b, _c;
     var condition = transition.condition;
     while (condition.$type === "CompositeCondition") {
@@ -310,6 +223,7 @@ function compileInstantaneousTransition(transition, fileNode) {
         `currentState = ` +
         currentState +
         `;
+                        startTimer = false;
 					}
 					`);
 }

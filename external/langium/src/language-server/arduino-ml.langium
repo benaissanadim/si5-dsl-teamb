@@ -35,10 +35,6 @@ NormalState :
 	'}'
 	;
 
-	
-
-
-
 ErrorState :
 	name=ID '{'
 		"errorNumber" ':' errorNumber=INT
@@ -47,7 +43,6 @@ ErrorState :
 		'}'
 	;
 	
-
 Action :
 	actuator=[Actuator:ID] '<=' value=Signal;
 
@@ -60,20 +55,16 @@ NegationOperator:
 	NOT = 'not';
 
 Transition :
-	InstantaneousTransition | TimeoutTransition;
-
-InstantaneousTransition :
 	condition=Condition '=>' next=Next;
 
 Next :
 	nextState=[NormalState:ID] | 'throw' error=[ErrorState:ID];
 
-TimeoutTransition:
-	'after' duration=INT 'ms' (op=LogicalOperator condition=Condition)? '=>' next=Next ;
-
-
 Condition :
-	AtomicCondition | CompositeCondition;
+	AtomicCondition | CompositeCondition | TimeoutCondition; 
+
+TimeoutCondition :
+	'after' duration=INT 'ms';
 
 AtomicCondition :
 	sensor=[Sensor:ID] 'is' (ne=NegationOperator)? value=Signal;
@@ -81,9 +72,9 @@ AtomicCondition :
 CompositeCondition :
 	'(' left=Condition op=LogicalOperator right=Condition ')';
 
-
 Signal:
     value=(HIGH | LOW);
+
 terminal HIGH : 'HIGH';
 terminal LOW : 'LOW';
 

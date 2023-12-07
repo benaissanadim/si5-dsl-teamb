@@ -4,7 +4,7 @@
  * DO NOT EDIT MANUALLY!
  ******************************************************************************/
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.reflection = exports.ArduinoMlAstReflection = exports.isTimeoutTransition = exports.TimeoutTransition = exports.isSignal = exports.Signal = exports.isSensor = exports.Sensor = exports.isNormalState = exports.NormalState = exports.isNext = exports.Next = exports.isNegationOperator = exports.NegationOperator = exports.isLogicalOperator = exports.LogicalOperator = exports.isInstantaneousTransition = exports.InstantaneousTransition = exports.isErrorState = exports.ErrorState = exports.isCompositeCondition = exports.CompositeCondition = exports.isAtomicCondition = exports.AtomicCondition = exports.isApp = exports.App = exports.isActuator = exports.Actuator = exports.isAction = exports.Action = exports.isTransition = exports.Transition = exports.isState = exports.State = exports.isCondition = exports.Condition = exports.isBrick = exports.Brick = void 0;
+exports.reflection = exports.ArduinoMlAstReflection = exports.isTransition = exports.Transition = exports.isTimeoutCondition = exports.TimeoutCondition = exports.isSignal = exports.Signal = exports.isSensor = exports.Sensor = exports.isNormalState = exports.NormalState = exports.isNext = exports.Next = exports.isNegationOperator = exports.NegationOperator = exports.isLogicalOperator = exports.LogicalOperator = exports.isErrorState = exports.ErrorState = exports.isCompositeCondition = exports.CompositeCondition = exports.isAtomicCondition = exports.AtomicCondition = exports.isApp = exports.App = exports.isActuator = exports.Actuator = exports.isAction = exports.Action = exports.isState = exports.State = exports.isCondition = exports.Condition = exports.isBrick = exports.Brick = void 0;
 /* eslint-disable */
 const langium_1 = require("langium");
 exports.Brick = 'Brick';
@@ -22,11 +22,6 @@ function isState(item) {
     return exports.reflection.isInstance(item, exports.State);
 }
 exports.isState = isState;
-exports.Transition = 'Transition';
-function isTransition(item) {
-    return exports.reflection.isInstance(item, exports.Transition);
-}
-exports.isTransition = isTransition;
 exports.Action = 'Action';
 function isAction(item) {
     return exports.reflection.isInstance(item, exports.Action);
@@ -57,11 +52,6 @@ function isErrorState(item) {
     return exports.reflection.isInstance(item, exports.ErrorState);
 }
 exports.isErrorState = isErrorState;
-exports.InstantaneousTransition = 'InstantaneousTransition';
-function isInstantaneousTransition(item) {
-    return exports.reflection.isInstance(item, exports.InstantaneousTransition);
-}
-exports.isInstantaneousTransition = isInstantaneousTransition;
 exports.LogicalOperator = 'LogicalOperator';
 function isLogicalOperator(item) {
     return exports.reflection.isInstance(item, exports.LogicalOperator);
@@ -92,14 +82,19 @@ function isSignal(item) {
     return exports.reflection.isInstance(item, exports.Signal);
 }
 exports.isSignal = isSignal;
-exports.TimeoutTransition = 'TimeoutTransition';
-function isTimeoutTransition(item) {
-    return exports.reflection.isInstance(item, exports.TimeoutTransition);
+exports.TimeoutCondition = 'TimeoutCondition';
+function isTimeoutCondition(item) {
+    return exports.reflection.isInstance(item, exports.TimeoutCondition);
 }
-exports.isTimeoutTransition = isTimeoutTransition;
+exports.isTimeoutCondition = isTimeoutCondition;
+exports.Transition = 'Transition';
+function isTransition(item) {
+    return exports.reflection.isInstance(item, exports.Transition);
+}
+exports.isTransition = isTransition;
 class ArduinoMlAstReflection extends langium_1.AbstractAstReflection {
     getAllTypes() {
-        return ['Action', 'Actuator', 'App', 'AtomicCondition', 'Brick', 'CompositeCondition', 'Condition', 'ErrorState', 'InstantaneousTransition', 'LogicalOperator', 'NegationOperator', 'Next', 'NormalState', 'Sensor', 'Signal', 'State', 'TimeoutTransition', 'Transition'];
+        return ['Action', 'Actuator', 'App', 'AtomicCondition', 'Brick', 'CompositeCondition', 'Condition', 'ErrorState', 'LogicalOperator', 'NegationOperator', 'Next', 'NormalState', 'Sensor', 'Signal', 'State', 'TimeoutCondition', 'Transition'];
     }
     computeIsSubtype(subtype, supertype) {
         switch (subtype) {
@@ -108,16 +103,13 @@ class ArduinoMlAstReflection extends langium_1.AbstractAstReflection {
                 return this.isSubtype(exports.Brick, supertype);
             }
             case exports.AtomicCondition:
-            case exports.CompositeCondition: {
+            case exports.CompositeCondition:
+            case exports.TimeoutCondition: {
                 return this.isSubtype(exports.Condition, supertype);
             }
             case exports.ErrorState:
             case exports.NormalState: {
                 return this.isSubtype(exports.State, supertype);
-            }
-            case exports.InstantaneousTransition:
-            case exports.TimeoutTransition: {
-                return this.isSubtype(exports.Transition, supertype);
             }
             default: {
                 return false;

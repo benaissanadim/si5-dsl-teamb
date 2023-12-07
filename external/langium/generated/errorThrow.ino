@@ -66,7 +66,7 @@ long button2LastDebounceTime = 0;
             
 				case error:
 					// Blink the error actuator
-					for (int i = 0; i < 3; i++) {
+					for (int i = 0; i < 5; i++) {
 						digitalWrite(11, HIGH); // turn the error actuator on
 						delay(500); // wait for 500ms
 						digitalWrite(11, LOW); // turn the error actuator off

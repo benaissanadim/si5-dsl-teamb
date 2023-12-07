@@ -14,7 +14,7 @@ export function isBrick(item: unknown): item is Brick {
     return reflection.isInstance(item, Brick);
 }
 
-export type Condition = AtomicCondition | CompositeCondition;
+export type Condition = AtomicCondition | CompositeCondition | TimeoutCondition;
 
 export const Condition = 'Condition';
 
@@ -28,14 +28,6 @@ export const State = 'State';
 
 export function isState(item: unknown): item is State {
     return reflection.isInstance(item, State);
-}
-
-export type Transition = InstantaneousTransition | TimeoutTransition;
-
-export const Transition = 'Transition';
-
-export function isTransition(item: unknown): item is Transition {
-    return reflection.isInstance(item, Transition);
 }
 
 export interface Action extends AstNode {
@@ -79,7 +71,7 @@ export function isApp(item: unknown): item is App {
 }
 
 export interface AtomicCondition extends AstNode {
-    readonly $container: CompositeCondition | InstantaneousTransition | TimeoutTransition;
+    readonly $container: CompositeCondition | Transition;
     readonly $type: 'AtomicCondition';
     ne?: NegationOperator
     sensor: Reference<Sensor>
@@ -93,7 +85,7 @@ export function isAtomicCondition(item: unknown): item is AtomicCondition {
 }
 
 export interface CompositeCondition extends AstNode {
-    readonly $container: CompositeCondition | InstantaneousTransition | TimeoutTransition;
+    readonly $container: CompositeCondition | Transition;
     readonly $type: 'CompositeCondition';
     left: Condition
     op: LogicalOperator
@@ -121,21 +113,8 @@ export function isErrorState(item: unknown): item is ErrorState {
     return reflection.isInstance(item, ErrorState);
 }
 
-export interface InstantaneousTransition extends AstNode {
-    readonly $container: NormalState;
-    readonly $type: 'InstantaneousTransition';
-    condition: Condition
-    next: Next
-}
-
-export const InstantaneousTransition = 'InstantaneousTransition';
-
-export function isInstantaneousTransition(item: unknown): item is InstantaneousTransition {
-    return reflection.isInstance(item, InstantaneousTransition);
-}
-
 export interface LogicalOperator extends AstNode {
-    readonly $container: CompositeCondition | TimeoutTransition;
+    readonly $container: CompositeCondition;
     readonly $type: 'LogicalOperator';
     AND?: 'and'
     OR?: 'or'
@@ -161,7 +140,7 @@ export function isNegationOperator(item: unknown): item is NegationOperator {
 }
 
 export interface Next extends AstNode {
-    readonly $container: InstantaneousTransition | TimeoutTransition;
+    readonly $container: Transition;
     readonly $type: 'Next';
     error?: Reference<ErrorState>
     nextState?: Reference<NormalState>
@@ -212,19 +191,29 @@ export function isSignal(item: unknown): item is Signal {
     return reflection.isInstance(item, Signal);
 }
 
-export interface TimeoutTransition extends AstNode {
-    readonly $container: NormalState;
-    readonly $type: 'TimeoutTransition';
-    condition?: Condition
+export interface TimeoutCondition extends AstNode {
+    readonly $container: CompositeCondition | Transition;
+    readonly $type: 'TimeoutCondition';
     duration: number
-    next: Next
-    op?: LogicalOperator
 }
 
-export const TimeoutTransition = 'TimeoutTransition';
+export const TimeoutCondition = 'TimeoutCondition';
 
-export function isTimeoutTransition(item: unknown): item is TimeoutTransition {
-    return reflection.isInstance(item, TimeoutTransition);
+export function isTimeoutCondition(item: unknown): item is TimeoutCondition {
+    return reflection.isInstance(item, TimeoutCondition);
+}
+
+export interface Transition extends AstNode {
+    readonly $container: NormalState;
+    readonly $type: 'Transition';
+    condition: Condition
+    next: Next
+}
+
+export const Transition = 'Transition';
+
+export function isTransition(item: unknown): item is Transition {
+    return reflection.isInstance(item, Transition);
 }
 
 export interface ArduinoMlAstType {
@@ -236,7 +225,6 @@ export interface ArduinoMlAstType {
     CompositeCondition: CompositeCondition
     Condition: Condition
     ErrorState: ErrorState
-    InstantaneousTransition: InstantaneousTransition
     LogicalOperator: LogicalOperator
     NegationOperator: NegationOperator
     Next: Next
@@ -244,14 +232,14 @@ export interface ArduinoMlAstType {
     Sensor: Sensor
     Signal: Signal
     State: State
-    TimeoutTransition: TimeoutTransition
+    TimeoutCondition: TimeoutCondition
     Transition: Transition
 }
 
 export class ArduinoMlAstReflection extends AbstractAstReflection {
 
     getAllTypes(): string[] {
-        return ['Action', 'Actuator', 'App', 'AtomicCondition', 'Brick', 'CompositeCondition', 'Condition', 'ErrorState', 'InstantaneousTransition', 'LogicalOperator', 'NegationOperator', 'Next', 'NormalState', 'Sensor', 'Signal', 'State', 'TimeoutTransition', 'Transition'];
+        return ['Action', 'Actuator', 'App', 'AtomicCondition', 'Brick', 'CompositeCondition', 'Condition', 'ErrorState', 'LogicalOperator', 'NegationOperator', 'Next', 'NormalState', 'Sensor', 'Signal', 'State', 'TimeoutCondition', 'Transition'];
     }
 
     protected override computeIsSubtype(subtype: string, supertype: string): boolean {
@@ -261,16 +249,13 @@ export class ArduinoMlAstReflection extends AbstractAstReflection {
                 return this.isSubtype(Brick, supertype);
             }
             case AtomicCondition:
-            case CompositeCondition: {
+            case CompositeCondition:
+            case TimeoutCondition: {
                 return this.isSubtype(Condition, supertype);
             }
             case ErrorState:
             case NormalState: {
                 return this.isSubtype(State, supertype);
-            }
-            case InstantaneousTransition:
-            case TimeoutTransition: {
-                return this.isSubtype(Transition, supertype);
             }
             default: {
                 return false;

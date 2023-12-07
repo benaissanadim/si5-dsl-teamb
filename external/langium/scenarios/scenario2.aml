@@ -13,8 +13,8 @@ app foo initial state off {
     ( button1 is LOW or button2 is LOW ) => off
   }
 
-    off {
-       buzzer <= LOW
-       ( button1 is HIGH and button2 is HIGH ) => on
-   }
+  off {
+     buzzer <= LOW
+     ( button1 is HIGH and button2 is HIGH ) => on
+  }
 }
