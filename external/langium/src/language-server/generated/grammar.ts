@@ -29,7 +29,7 @@ export const ArduinoMlGrammar = (): Grammar => loadedArduinoMlGrammar ?? (loaded
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@20"
+                "$ref": "#/rules@22"
               },
               "arguments": []
             }
@@ -54,7 +54,7 @@ export const ArduinoMlGrammar = (): Grammar => loadedArduinoMlGrammar ?? (loaded
               "terminal": {
                 "$type": "RuleCall",
                 "rule": {
-                  "$ref": "#/rules@20"
+                  "$ref": "#/rules@22"
                 },
                 "arguments": []
               },
@@ -188,7 +188,7 @@ export const ArduinoMlGrammar = (): Grammar => loadedArduinoMlGrammar ?? (loaded
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@20"
+                "$ref": "#/rules@22"
               },
               "arguments": []
             }
@@ -204,7 +204,7 @@ export const ArduinoMlGrammar = (): Grammar => loadedArduinoMlGrammar ?? (loaded
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@21"
+                "$ref": "#/rules@23"
               },
               "arguments": []
             }
@@ -242,7 +242,7 @@ export const ArduinoMlGrammar = (): Grammar => loadedArduinoMlGrammar ?? (loaded
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@20"
+                "$ref": "#/rules@22"
               },
               "arguments": []
             }
@@ -258,7 +258,7 @@ export const ArduinoMlGrammar = (): Grammar => loadedArduinoMlGrammar ?? (loaded
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@21"
+                "$ref": "#/rules@23"
               },
               "arguments": []
             }
@@ -314,7 +314,7 @@ export const ArduinoMlGrammar = (): Grammar => loadedArduinoMlGrammar ?? (loaded
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@20"
+                "$ref": "#/rules@22"
               },
               "arguments": []
             }
@@ -343,6 +343,19 @@ export const ArduinoMlGrammar = (): Grammar => loadedArduinoMlGrammar ?? (loaded
               "$type": "RuleCall",
               "rule": {
                 "$ref": "#/rules@7"
+              },
+              "arguments": []
+            },
+            "cardinality": "*"
+          },
+          {
+            "$type": "Assignment",
+            "feature": "remotes",
+            "operator": "+=",
+            "terminal": {
+              "$type": "RuleCall",
+              "rule": {
+                "$ref": "#/rules@14"
               },
               "arguments": []
             },
@@ -387,7 +400,7 @@ export const ArduinoMlGrammar = (): Grammar => loadedArduinoMlGrammar ?? (loaded
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@20"
+                "$ref": "#/rules@22"
               },
               "arguments": []
             }
@@ -411,7 +424,7 @@ export const ArduinoMlGrammar = (): Grammar => loadedArduinoMlGrammar ?? (loaded
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@21"
+                "$ref": "#/rules@23"
               },
               "arguments": []
             }
@@ -431,7 +444,7 @@ export const ArduinoMlGrammar = (): Grammar => loadedArduinoMlGrammar ?? (loaded
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@21"
+                "$ref": "#/rules@23"
               },
               "arguments": []
             }
@@ -456,7 +469,7 @@ export const ArduinoMlGrammar = (): Grammar => loadedArduinoMlGrammar ?? (loaded
               "terminal": {
                 "$type": "RuleCall",
                 "rule": {
-                  "$ref": "#/rules@20"
+                  "$ref": "#/rules@22"
                 },
                 "arguments": []
               },
@@ -494,7 +507,7 @@ export const ArduinoMlGrammar = (): Grammar => loadedArduinoMlGrammar ?? (loaded
               "terminal": {
                 "$type": "RuleCall",
                 "rule": {
-                  "$ref": "#/rules@20"
+                  "$ref": "#/rules@22"
                 },
                 "arguments": []
               },
@@ -512,7 +525,7 @@ export const ArduinoMlGrammar = (): Grammar => loadedArduinoMlGrammar ?? (loaded
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@16"
+                "$ref": "#/rules@18"
               },
               "arguments": []
             }
@@ -648,7 +661,7 @@ export const ArduinoMlGrammar = (): Grammar => loadedArduinoMlGrammar ?? (loaded
               "terminal": {
                 "$type": "RuleCall",
                 "rule": {
-                  "$ref": "#/rules@20"
+                  "$ref": "#/rules@22"
                 },
                 "arguments": []
               },
@@ -674,7 +687,7 @@ export const ArduinoMlGrammar = (): Grammar => loadedArduinoMlGrammar ?? (loaded
                   "terminal": {
                     "$type": "RuleCall",
                     "rule": {
-                      "$ref": "#/rules@20"
+                      "$ref": "#/rules@22"
                     },
                     "arguments": []
                   },
@@ -701,7 +714,14 @@ export const ArduinoMlGrammar = (): Grammar => loadedArduinoMlGrammar ?? (loaded
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@14"
+              "$ref": "#/rules@16"
+            },
+            "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@17"
             },
             "arguments": []
           },
@@ -730,6 +750,83 @@ export const ArduinoMlGrammar = (): Grammar => loadedArduinoMlGrammar ?? (loaded
     },
     {
       "$type": "ParserRule",
+      "name": "RemoteCondition",
+      "definition": {
+        "$type": "Group",
+        "elements": [
+          {
+            "$type": "Assignment",
+            "feature": "key",
+            "operator": "=",
+            "terminal": {
+              "$type": "RuleCall",
+              "rule": {
+                "$ref": "#/rules@25"
+              },
+              "arguments": []
+            }
+          },
+          {
+            "$type": "Keyword",
+            "value": "::"
+          },
+          {
+            "$type": "Keyword",
+            "value": "triggered"
+          }
+        ]
+      },
+      "definesHiddenTokens": false,
+      "entry": false,
+      "fragment": false,
+      "hiddenTokens": [],
+      "parameters": [],
+      "wildcard": false
+    },
+    {
+      "$type": "ParserRule",
+      "name": "RemoteInformation",
+      "definition": {
+        "$type": "Group",
+        "elements": [
+          {
+            "$type": "Assignment",
+            "feature": "sensor",
+            "operator": "=",
+            "terminal": {
+              "$type": "CrossReference",
+              "type": {
+                "$ref": "#/rules@3"
+              },
+              "terminal": {
+                "$type": "RuleCall",
+                "rule": {
+                  "$ref": "#/rules@22"
+                },
+                "arguments": []
+              },
+              "deprecatedSyntax": false
+            }
+          },
+          {
+            "$type": "Keyword",
+            "value": "::"
+          },
+          {
+            "$type": "Keyword",
+            "value": "read"
+          }
+        ]
+      },
+      "definesHiddenTokens": false,
+      "entry": false,
+      "fragment": false,
+      "hiddenTokens": [],
+      "parameters": [],
+      "wildcard": false
+    },
+    {
+      "$type": "ParserRule",
       "name": "TimeoutCondition",
       "definition": {
         "$type": "Group",
@@ -745,7 +842,7 @@ export const ArduinoMlGrammar = (): Grammar => loadedArduinoMlGrammar ?? (loaded
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@21"
+                "$ref": "#/rules@23"
               },
               "arguments": []
             }
@@ -781,7 +878,7 @@ export const ArduinoMlGrammar = (): Grammar => loadedArduinoMlGrammar ?? (loaded
               "terminal": {
                 "$type": "RuleCall",
                 "rule": {
-                  "$ref": "#/rules@20"
+                  "$ref": "#/rules@22"
                 },
                 "arguments": []
               },
@@ -812,7 +909,7 @@ export const ArduinoMlGrammar = (): Grammar => loadedArduinoMlGrammar ?? (loaded
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@16"
+                "$ref": "#/rules@18"
               },
               "arguments": []
             }
@@ -898,14 +995,14 @@ export const ArduinoMlGrammar = (): Grammar => loadedArduinoMlGrammar ?? (loaded
             {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@17"
+                "$ref": "#/rules@19"
               },
               "arguments": []
             },
             {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@18"
+                "$ref": "#/rules@20"
               },
               "arguments": []
             }
@@ -985,6 +1082,16 @@ export const ArduinoMlGrammar = (): Grammar => loadedArduinoMlGrammar ?? (loaded
       "definition": {
         "$type": "RegexToken",
         "regex": "\\"[^\\"]*\\"|'[^']*'"
+      },
+      "fragment": false,
+      "hidden": false
+    },
+    {
+      "$type": "TerminalRule",
+      "name": "CHAR",
+      "definition": {
+        "$type": "RegexToken",
+        "regex": "'.'"
       },
       "fragment": false,
       "hidden": false
