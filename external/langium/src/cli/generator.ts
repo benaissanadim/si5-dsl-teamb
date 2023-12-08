@@ -70,7 +70,8 @@ long ` +
     }
   }
   fileNode.append(`
-	void setup(){`);
+	void setup(){
+        Serial.begin(9600);`);
   for (const brick of app.bricks) {
     if ("inputPin" in brick) {
       compileSensor(brick, fileNode);
@@ -83,11 +84,13 @@ long ` +
     `
 	}
 	void loop() {
+              char incomingChar = Serial.read(); // Read the incoming character
+
 			switch(currentState){`,
     NL
   );
   for (const state of app.states) {
-    compileState(state, app.initial.ref?.name, fileNode);
+    compileState(state, fileNode);
   }
   fileNode.append(
     `
@@ -120,19 +123,14 @@ function compileSensor(sensor: Sensor, fileNode: CompositeGeneratorNode) {
   );
 }
 
-function compileState(
-  state: State,
-  initial: string | undefined,
-  fileNode: CompositeGeneratorNode
-) {
+function compileState(state: State, fileNode: CompositeGeneratorNode) {
   fileNode.append(
     `
 				case ` +
       state.name +
       `:`
   );
-  if (state.$type === "NormalState")
-    compileNormalState(state, initial, fileNode);
+  if (state.$type === "NormalState") compileNormalState(state, fileNode);
 
   if (state.$type === "ErrorState") compileErrorState(state, fileNode);
 
@@ -144,11 +142,20 @@ function compileState(
 
 function compileNormalState(
   state: NormalState,
-  initial: string | undefined,
   fileNode: CompositeGeneratorNode
 ) {
   for (const action of state.actions) {
     compileAction(action, fileNode);
+  }
+
+  for (const remoteSensor of state.remotes) {
+    fileNode.append(
+      `              
+                    Serial.println(analogRead(` +
+        remoteSensor.sensor.ref?.inputPin +
+        `));
+        `
+    );
   }
 
   fileNode.append(
@@ -159,6 +166,7 @@ function compileNormalState(
                     }
           `
   );
+
   const bounceGuards: Array<string | undefined> = [];
   for (const transition of state.transitions) {
     fileNode.append(
@@ -217,6 +225,8 @@ function compileCondition(condition: Condition): string {
     return `${negation}digitalRead(${condition.sensor.ref?.inputPin}) == ${condition.value.value} && ${condition.sensor.ref?.name}BounceGuard`;
   } else if (condition.$type === "TimeoutCondition") {
     return `millis() - startTime > ${condition.duration}`;
+  } else if (condition.$type === "RemoteCondition") {
+    return `incomingChar == ${condition.key}`;
   } else if (condition.$type === "CompositeCondition") {
     const leftCondition = compileCondition(condition.left);
     const rightCondition = compileCondition(condition.right);

@@ -21,7 +21,7 @@ function generateInoFile(app, filePath, destination) {
 }
 exports.generateInoFile = generateInoFile;
 function compile(app, fileNode) {
-    var _a, _b;
+    var _a;
     fileNode.append(`
 //Wiring code generated from an ArduinoML model
 // Application name: ` +
@@ -52,7 +52,8 @@ long ` +
         }
     }
     fileNode.append(`
-	void setup(){`);
+	void setup(){
+        Serial.begin(9600);`);
     for (const brick of app.bricks) {
         if ("inputPin" in brick) {
             compileSensor(brick, fileNode);
@@ -64,9 +65,11 @@ long ` +
     fileNode.append(`
 	}
 	void loop() {
+              char incomingChar = Serial.read(); // Read the incoming character
+
 			switch(currentState){`, langium_1.NL);
     for (const state of app.states) {
-        compileState(state, (_b = app.initial.ref) === null || _b === void 0 ? void 0 : _b.name, fileNode);
+        compileState(state, fileNode);
     }
     fileNode.append(`
 		}
@@ -89,13 +92,13 @@ function compileSensor(sensor, fileNode) {
         sensor.name +
         ` [Sensor]`);
 }
-function compileState(state, initial, fileNode) {
+function compileState(state, fileNode) {
     fileNode.append(`
 				case ` +
         state.name +
         `:`);
     if (state.$type === "NormalState")
-        compileNormalState(state, initial, fileNode);
+        compileNormalState(state, fileNode);
     if (state.$type === "ErrorState")
         compileErrorState(state, fileNode);
     fileNode.append(`
@@ -103,9 +106,17 @@ function compileState(state, initial, fileNode) {
 				    break;
             `);
 }
-function compileNormalState(state, initial, fileNode) {
+function compileNormalState(state, fileNode) {
+    var _a;
     for (const action of state.actions) {
         compileAction(action, fileNode);
+    }
+    for (const remoteSensor of state.remotes) {
+        fileNode.append(`              
+                    Serial.println(analogRead(` +
+            ((_a = remoteSensor.sensor.ref) === null || _a === void 0 ? void 0 : _a.inputPin) +
+            `));
+        `);
     }
     fileNode.append(`
                     if (startTimer == false) {
@@ -162,6 +173,9 @@ function compileCondition(condition) {
     }
     else if (condition.$type === "TimeoutCondition") {
         return `millis() - startTime > ${condition.duration}`;
+    }
+    else if (condition.$type === "RemoteCondition") {
+        return `incomingChar == ${condition.key}`;
     }
     else if (condition.$type === "CompositeCondition") {
         const leftCondition = compileCondition(condition.left);

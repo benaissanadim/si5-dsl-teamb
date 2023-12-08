@@ -31,6 +31,7 @@ NormalState :
 	name=ID '{' 
 		actions+=Action
 		(actions+=Action)* 
+		(remotes+=RemoteInformation)*
 		(transitions+=Transition)*
 	'}'
 	;
@@ -61,7 +62,13 @@ Next :
 	nextState=[NormalState:ID] | 'throw' error=[ErrorState:ID];
 
 Condition :
-	AtomicCondition | CompositeCondition | TimeoutCondition; 
+	AtomicCondition | CompositeCondition | TimeoutCondition | RemoteCondition; 
+
+RemoteCondition :
+	 key=CHAR '::' 'triggered';
+
+RemoteInformation :
+	sensor=[Sensor:ID] '::' 'read';
 
 TimeoutCondition :
 	'after' duration=INT 'ms';
@@ -82,6 +89,7 @@ hidden terminal WS: /\s+/;
 terminal ID: /[_a-zA-Z][\w_]*/;
 terminal INT returns number: /[0-9]+/;
 terminal STRING: /"[^"]*"|'[^']*'/;
+terminal CHAR: /'.'/;
 
 hidden terminal ML_COMMENT: /\/\*[\s\S]*?\*\//;
 hidden terminal SL_COMMENT: /\/\/[^\n\r]*/;
