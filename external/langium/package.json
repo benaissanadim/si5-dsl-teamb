@@ -1,8 +1,13 @@
 {
-    "name": "ArduinoML",
+    "name": "arduino-ml-vscode",
     "displayName": "ArduinoML",
     "description": "ArduinoML language support for Visual Studio Code",
-    "version": "0.0.1",
+    "author": "pns-si5-dsl-teamb",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/benaissanadim/si5-dsl-teamb"
+    },
+    "version": "1.0.0",
     "engines": {
         "vscode": "^1.56.0"
     },
