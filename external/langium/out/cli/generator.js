@@ -135,7 +135,7 @@ function compileNormalState(state, fileNode) {
 }
 function compileErrorState(state, fileNode) {
     var _a, _b;
-    const actuator = state.errorActuator;
+    const actuator = state.errorLed;
     const blinkCount = state.errorNumber;
     const pauseTime = state.pauseTime;
     fileNode.append(`

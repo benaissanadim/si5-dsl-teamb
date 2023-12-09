@@ -10,17 +10,23 @@
 
 <InitialState> ::= "initial" <ID>
 
-<NormalState> ::= "state" <ID> "means" (<Action> (<LogicalOperator> <Action>)*)
+<NormalState> ::= "state" <ID> "means" (<Action> (<LogicalOperator> <Action>)*) (<LogicalOperator> <RemoteCommunication>)*
 
 <ErrorState> ::= "error" <ID> "means" <ID> "flahses" <INT> "times and pauses" <INT> "ms" 
 
-<Action> ::= <ID> "becomes" <SIGNAL> 
+<Action> ::= <ID> "becomes" <SIGNAL>
+
+<RemoteCommunication> ::= <ID> "becomes" "printing"
 
 <Transition> ::= "from" <ID> "to" <ID> "when" <Condition>
 
-<Condition> ::= <SignalCondition> | <CompositeCondition>
+<Condition> ::= <AtomicCondition> | <CompositeCondition> | <TimeoutCondition> | <RemoteCondition>
 
-<SignalCondition> ::= <ID> <> <SIGNAL>
+<AtomicCondition> ::= <ID> <> <SIGNAL>
+
+<TimeoutCondition> ::= "after" <INT> "ms"
+
+<RemoteCondition> ::= <CHAR> "becomes" "pressed"
 
 <CompositeCondition> ::= <Condition> <EqualityOperator> <Condition>
 

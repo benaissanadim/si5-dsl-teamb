@@ -4,7 +4,7 @@
  * DO NOT EDIT MANUALLY!
  ******************************************************************************/
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.reflection = exports.ArduinoMlAstReflection = exports.isTransition = exports.Transition = exports.isTimeoutCondition = exports.TimeoutCondition = exports.isSignal = exports.Signal = exports.isSensor = exports.Sensor = exports.isRemoteInformation = exports.RemoteInformation = exports.isRemoteCondition = exports.RemoteCondition = exports.isNormalState = exports.NormalState = exports.isNext = exports.Next = exports.isNegationOperator = exports.NegationOperator = exports.isLogicalOperator = exports.LogicalOperator = exports.isErrorState = exports.ErrorState = exports.isCompositeCondition = exports.CompositeCondition = exports.isAtomicCondition = exports.AtomicCondition = exports.isApp = exports.App = exports.isActuator = exports.Actuator = exports.isAction = exports.Action = exports.isState = exports.State = exports.isCondition = exports.Condition = exports.isBrick = exports.Brick = void 0;
+exports.reflection = exports.ArduinoMlAstReflection = exports.isTransition = exports.Transition = exports.isTimeoutCondition = exports.TimeoutCondition = exports.isSignal = exports.Signal = exports.isSensor = exports.Sensor = exports.isRemoteCondition = exports.RemoteCondition = exports.isRemoteCommunication = exports.RemoteCommunication = exports.isNormalState = exports.NormalState = exports.isNext = exports.Next = exports.isNegationOperator = exports.NegationOperator = exports.isLogicalOperator = exports.LogicalOperator = exports.isErrorState = exports.ErrorState = exports.isCompositeCondition = exports.CompositeCondition = exports.isAtomicCondition = exports.AtomicCondition = exports.isApp = exports.App = exports.isActuator = exports.Actuator = exports.isAction = exports.Action = exports.isState = exports.State = exports.isCondition = exports.Condition = exports.isBrick = exports.Brick = void 0;
 /* eslint-disable */
 const langium_1 = require("langium");
 exports.Brick = 'Brick';
@@ -72,16 +72,16 @@ function isNormalState(item) {
     return exports.reflection.isInstance(item, exports.NormalState);
 }
 exports.isNormalState = isNormalState;
+exports.RemoteCommunication = 'RemoteCommunication';
+function isRemoteCommunication(item) {
+    return exports.reflection.isInstance(item, exports.RemoteCommunication);
+}
+exports.isRemoteCommunication = isRemoteCommunication;
 exports.RemoteCondition = 'RemoteCondition';
 function isRemoteCondition(item) {
     return exports.reflection.isInstance(item, exports.RemoteCondition);
 }
 exports.isRemoteCondition = isRemoteCondition;
-exports.RemoteInformation = 'RemoteInformation';
-function isRemoteInformation(item) {
-    return exports.reflection.isInstance(item, exports.RemoteInformation);
-}
-exports.isRemoteInformation = isRemoteInformation;
 exports.Sensor = 'Sensor';
 function isSensor(item) {
     return exports.reflection.isInstance(item, exports.Sensor);
@@ -104,7 +104,7 @@ function isTransition(item) {
 exports.isTransition = isTransition;
 class ArduinoMlAstReflection extends langium_1.AbstractAstReflection {
     getAllTypes() {
-        return ['Action', 'Actuator', 'App', 'AtomicCondition', 'Brick', 'CompositeCondition', 'Condition', 'ErrorState', 'LogicalOperator', 'NegationOperator', 'Next', 'NormalState', 'RemoteCondition', 'RemoteInformation', 'Sensor', 'Signal', 'State', 'TimeoutCondition', 'Transition'];
+        return ['Action', 'Actuator', 'App', 'AtomicCondition', 'Brick', 'CompositeCondition', 'Condition', 'ErrorState', 'LogicalOperator', 'NegationOperator', 'Next', 'NormalState', 'RemoteCommunication', 'RemoteCondition', 'Sensor', 'Signal', 'State', 'TimeoutCondition', 'Transition'];
     }
     computeIsSubtype(subtype, supertype) {
         switch (subtype) {
@@ -131,7 +131,7 @@ class ArduinoMlAstReflection extends langium_1.AbstractAstReflection {
         const referenceId = `${refInfo.container.$type}:${refInfo.property}`;
         switch (referenceId) {
             case 'Action:actuator':
-            case 'ErrorState:errorActuator': {
+            case 'ErrorState:errorLed': {
                 return exports.Actuator;
             }
             case 'App:initial':
@@ -139,7 +139,7 @@ class ArduinoMlAstReflection extends langium_1.AbstractAstReflection {
                 return exports.NormalState;
             }
             case 'AtomicCondition:sensor':
-            case 'RemoteInformation:sensor': {
+            case 'RemoteCommunication:sensor': {
                 return exports.Sensor;
             }
             case 'Next:error': {

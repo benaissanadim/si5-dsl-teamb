@@ -9,12 +9,12 @@ app foo initial state off {
   states
   on {
     led <= HIGH
-    thermicSensor::read
+    reading thermicSensor
     button is HIGH => off
   }
 
   off {
     led <= LOW
-    ( button is HIGH or 'A'::triggered ) => on
+    ( button is HIGH or 'A' is pressed ) => on
   }
 }

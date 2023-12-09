@@ -101,7 +101,7 @@ export function isCompositeCondition(item: unknown): item is CompositeCondition 
 export interface ErrorState extends AstNode {
     readonly $container: App;
     readonly $type: 'ErrorState';
-    errorActuator: Reference<Actuator>
+    errorLed: Reference<Actuator>
     errorNumber: number
     name: string
     pauseTime: number
@@ -157,7 +157,7 @@ export interface NormalState extends AstNode {
     readonly $type: 'NormalState';
     actions: Array<Action>
     name: string
-    remotes: Array<RemoteInformation>
+    remotes: Array<RemoteCommunication>
     transitions: Array<Transition>
 }
 
@@ -165,6 +165,18 @@ export const NormalState = 'NormalState';
 
 export function isNormalState(item: unknown): item is NormalState {
     return reflection.isInstance(item, NormalState);
+}
+
+export interface RemoteCommunication extends AstNode {
+    readonly $container: NormalState;
+    readonly $type: 'RemoteCommunication';
+    sensor: Reference<Sensor>
+}
+
+export const RemoteCommunication = 'RemoteCommunication';
+
+export function isRemoteCommunication(item: unknown): item is RemoteCommunication {
+    return reflection.isInstance(item, RemoteCommunication);
 }
 
 export interface RemoteCondition extends AstNode {
@@ -177,18 +189,6 @@ export const RemoteCondition = 'RemoteCondition';
 
 export function isRemoteCondition(item: unknown): item is RemoteCondition {
     return reflection.isInstance(item, RemoteCondition);
-}
-
-export interface RemoteInformation extends AstNode {
-    readonly $container: NormalState;
-    readonly $type: 'RemoteInformation';
-    sensor: Reference<Sensor>
-}
-
-export const RemoteInformation = 'RemoteInformation';
-
-export function isRemoteInformation(item: unknown): item is RemoteInformation {
-    return reflection.isInstance(item, RemoteInformation);
 }
 
 export interface Sensor extends AstNode {
@@ -254,8 +254,8 @@ export interface ArduinoMlAstType {
     NegationOperator: NegationOperator
     Next: Next
     NormalState: NormalState
+    RemoteCommunication: RemoteCommunication
     RemoteCondition: RemoteCondition
-    RemoteInformation: RemoteInformation
     Sensor: Sensor
     Signal: Signal
     State: State
@@ -266,7 +266,7 @@ export interface ArduinoMlAstType {
 export class ArduinoMlAstReflection extends AbstractAstReflection {
 
     getAllTypes(): string[] {
-        return ['Action', 'Actuator', 'App', 'AtomicCondition', 'Brick', 'CompositeCondition', 'Condition', 'ErrorState', 'LogicalOperator', 'NegationOperator', 'Next', 'NormalState', 'RemoteCondition', 'RemoteInformation', 'Sensor', 'Signal', 'State', 'TimeoutCondition', 'Transition'];
+        return ['Action', 'Actuator', 'App', 'AtomicCondition', 'Brick', 'CompositeCondition', 'Condition', 'ErrorState', 'LogicalOperator', 'NegationOperator', 'Next', 'NormalState', 'RemoteCommunication', 'RemoteCondition', 'Sensor', 'Signal', 'State', 'TimeoutCondition', 'Transition'];
     }
 
     protected override computeIsSubtype(subtype: string, supertype: string): boolean {
@@ -295,7 +295,7 @@ export class ArduinoMlAstReflection extends AbstractAstReflection {
         const referenceId = `${refInfo.container.$type}:${refInfo.property}`;
         switch (referenceId) {
             case 'Action:actuator':
-            case 'ErrorState:errorActuator': {
+            case 'ErrorState:errorLed': {
                 return Actuator;
             }
             case 'App:initial':
@@ -303,7 +303,7 @@ export class ArduinoMlAstReflection extends AbstractAstReflection {
                 return NormalState;
             }
             case 'AtomicCondition:sensor':
-            case 'RemoteInformation:sensor': {
+            case 'RemoteCommunication:sensor': {
                 return Sensor;
             }
             case 'Next:error': {

@@ -452,7 +452,7 @@ const ArduinoMlGrammar = () => loadedArduinoMlGrammar !== null && loadedArduinoM
           },
           {
             "$type": "Keyword",
-            "value": "errorActuator"
+            "value": "errorLed"
           },
           {
             "$type": "Keyword",
@@ -460,7 +460,7 @@ const ArduinoMlGrammar = () => loadedArduinoMlGrammar !== null && loadedArduinoM
           },
           {
             "$type": "Assignment",
-            "feature": "errorActuator",
+            "feature": "errorLed",
             "operator": "=",
             "terminal": {
               "$type": "CrossReference",
@@ -769,11 +769,11 @@ const ArduinoMlGrammar = () => loadedArduinoMlGrammar !== null && loadedArduinoM
           },
           {
             "$type": "Keyword",
-            "value": "::"
+            "value": "is"
           },
           {
             "$type": "Keyword",
-            "value": "triggered"
+            "value": "pressed"
           }
         ]
       },
@@ -786,10 +786,14 @@ const ArduinoMlGrammar = () => loadedArduinoMlGrammar !== null && loadedArduinoM
     },
     {
       "$type": "ParserRule",
-      "name": "RemoteInformation",
+      "name": "RemoteCommunication",
       "definition": {
         "$type": "Group",
         "elements": [
+          {
+            "$type": "Keyword",
+            "value": "reading"
+          },
           {
             "$type": "Assignment",
             "feature": "sensor",
@@ -808,14 +812,6 @@ const ArduinoMlGrammar = () => loadedArduinoMlGrammar !== null && loadedArduinoM
               },
               "deprecatedSyntax": false
             }
-          },
-          {
-            "$type": "Keyword",
-            "value": "::"
-          },
-          {
-            "$type": "Keyword",
-            "value": "read"
           }
         ]
       },

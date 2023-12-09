@@ -22,6 +22,6 @@ app foo initial state off {
   error {
     errorNumber : 5
     pauseTime : 3
-    errorActuator : led
+    errorLed : led
   }
 }

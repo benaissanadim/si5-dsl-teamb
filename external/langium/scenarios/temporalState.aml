@@ -11,13 +11,13 @@ app foo initial state off {
   states
   on {
     led <= HIGH
-    ( after 3000 ms and button is HIGH ) => buzz
-    ( after 3000 ms and breakButton is HIGH ) => off
+    ( after 5000 ms and button is HIGH ) => buzz
+    after 3000 ms => off
   }
 buzz {
     buzzer <= HIGH
     after 5000 ms => off
-    breakButton is HIGH => off
+    button is HIGH => off
 }
 
   off {

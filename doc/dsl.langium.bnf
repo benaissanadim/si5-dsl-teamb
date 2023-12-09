@@ -9,31 +9,35 @@
 
 <Sensor> ::= "Sensor" <ID> ":" <PIN_INT>
 
-<State> ::= <ID> "{" <NormalState> | <ErrorState> "}"
+<State> ::=  <NormalState> | <ErrorState> 
 
-<NormalState> ::= (<PerpetualState> | <TemporalState>)
+<NormalState> ::= <ID> "{" ((<Action>)+) ((<RemoteCommunication>)*) ((<Transition>)*)   "}"
 
-<PerpetualState> ::= ((<Action>)+) ((<ConditionalTransition>)+) 
 
-<TemporalState> ::= ((<Action>)+) <TemporalTransition> ((<ConditionalTransition>)+) 
-
-<ErrorState> ::= "ErrorState" "errorNumber" ":" <INT>
+<ErrorState> ::= <ID> "{" "ErrorState" "errorNumber" ":" <INT>
                  "pauseTime" ":" <INT>
                  "errorLed" ":" <ID>
+                 "}"
 
 <Action> ::= <ID> "<=" <Signal>
+
+<RemoteCommunication> ::= "reading" <ID>;
 
 <LogicalOperator> ::= "and" | "or" | "xor"
 
 <NegationOperator> ::= "not"
 
-<ConditionalTransition> ::= <Condition> "=>" <ID>
+<Transition> ::= <Condition> "=>" <Next>
 
-<TemporalTransition> ::= "after" <INT> "ms" "=>" <ID> | "runFor" <INT> "ms"
+<Next> ::= <ID> | "throw" <ID>
 
-<Condition> ::= <SignalCondition> | <CompositeCondition>
+<Condition> ::= <AtomicCondition> | <CompositeCondition> | <TimeoutCondition> | <RemoteCondition>
 
-<SignalCondition> ::= <ID> "is" (<NegationOperator>)? <Signal>
+<TimeoutCondition> ::= "after" <INT> "ms"
+
+<AtomicCondition> ::= <ID> "is" (<NegationOperator>)? <Signal>
+
+<RemoteCondition> ::= <CHAR> "is" "pressed";
 
 <CompositeCondition> ::= "(" <Condition> <ComparisonOperator> <Condition> ")"
 

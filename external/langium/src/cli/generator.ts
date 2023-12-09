@@ -184,7 +184,7 @@ function compileErrorState(
   state: ErrorState,
   fileNode: CompositeGeneratorNode
 ) {
-  const actuator = state.errorActuator;
+  const actuator = state.errorLed;
   const blinkCount = state.errorNumber;
   const pauseTime = state.pauseTime;
   fileNode.append(

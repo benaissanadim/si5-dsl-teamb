@@ -10,3 +10,4 @@ from "off" to "on" when "button" becomes "high" or "A" becomes "pressed"
 from "on" to "off" when "button" becomes "low"
 
 export "Switch!"
+

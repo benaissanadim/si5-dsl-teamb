@@ -31,7 +31,7 @@ NormalState :
 	name=ID '{' 
 		actions+=Action
 		(actions+=Action)* 
-		(remotes+=RemoteInformation)*
+		(remotes+=RemoteCommunication)*
 		(transitions+=Transition)*
 	'}'
 	;
@@ -40,7 +40,7 @@ ErrorState :
 	name=ID '{'
 		"errorNumber" ':' errorNumber=INT
 		"pauseTime" ':' pauseTime=INT
-		"errorActuator" ':' errorActuator=[Actuator:ID]
+		"errorLed" ':' errorLed=[Actuator:ID]
 		'}'
 	;
 	
@@ -65,10 +65,10 @@ Condition :
 	AtomicCondition | CompositeCondition | TimeoutCondition | RemoteCondition; 
 
 RemoteCondition :
-	 key=CHAR '::' 'triggered';
+	 key=CHAR 'is' 'pressed';
 
-RemoteInformation :
-	sensor=[Sensor:ID] '::' 'read';
+RemoteCommunication :
+	'reading' sensor=[Sensor:ID];
 
 TimeoutCondition :
 	'after' duration=INT 'ms';

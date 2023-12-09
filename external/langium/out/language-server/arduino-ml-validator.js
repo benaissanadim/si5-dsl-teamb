@@ -36,9 +36,9 @@ class ArduinoMlValidator {
     }
     validateAppBricksPins(app, accept) {
         const bricks = app.bricks;
-        // Just adding a couple critical checks for arduino 
+        // Just adding a couple critical checks for arduino
         // Check if bricks on the allowed pins
-        bricks.forEach(brick => {
+        bricks.forEach((brick) => {
             if (brick.$type === "Actuator") {
                 const actuatorBrick = brick;
                 if (actuatorBrick.outputPin < 0 || actuatorBrick.outputPin > 13) {
@@ -115,8 +115,8 @@ class ArduinoMlValidator {
         }
         else if (compositeCondition.left.$type === "CompositeCondition" &&
             compositeCondition.right.$type === "CompositeCondition") {
-            return this.hasATimeoutCondition(compositeCondition.left) ||
-                this.hasATimeoutCondition(compositeCondition.right);
+            return (this.hasATimeoutCondition(compositeCondition.left) ||
+                this.hasATimeoutCondition(compositeCondition.right));
         }
         else if (compositeCondition.right.$type === "CompositeCondition" &&
             compositeCondition.left.$type !== "CompositeCondition") {
@@ -128,6 +128,34 @@ class ArduinoMlValidator {
         }
         else {
             return false;
+        }
+    }
+    getTimeoutCondition(compositeCondition) {
+        if (compositeCondition.left.$type === "TimeoutCondition") {
+            return compositeCondition.left;
+        }
+        else if (compositeCondition.right.$type === "TimeoutCondition") {
+            return compositeCondition.right;
+        }
+        else if (compositeCondition.left.$type === "CompositeCondition" &&
+            compositeCondition.right.$type === "CompositeCondition") {
+            try {
+                return this.getTimeoutCondition(compositeCondition.left);
+            }
+            catch (_a) {
+                return this.getTimeoutCondition(compositeCondition.right);
+            }
+        }
+        else if (compositeCondition.right.$type === "CompositeCondition" &&
+            compositeCondition.left.$type !== "CompositeCondition") {
+            return this.getTimeoutCondition(compositeCondition.right);
+        }
+        else if (compositeCondition.left.$type === "CompositeCondition" &&
+            compositeCondition.right.$type !== "CompositeCondition") {
+            return this.getTimeoutCondition(compositeCondition.left);
+        }
+        else {
+            throw new Error("No timeout condition found.");
         }
     }
     hasMultipleTimeoutConditions(compositeCondition) {
@@ -143,8 +171,8 @@ class ArduinoMlValidator {
         }
         else if (compositeCondition.left.$type === "CompositeCondition" &&
             compositeCondition.right.$type === "CompositeCondition") {
-            return this.hasMultipleTimeoutConditions(compositeCondition.left) ||
-                this.hasMultipleTimeoutConditions(compositeCondition.right);
+            return (this.hasMultipleTimeoutConditions(compositeCondition.left) ||
+                this.hasMultipleTimeoutConditions(compositeCondition.right));
         }
         else if (compositeCondition.right.$type === "CompositeCondition" &&
             compositeCondition.left.$type !== "CompositeCondition") {
@@ -160,20 +188,24 @@ class ArduinoMlValidator {
     }
     hasIgnoredTransitions(state, accept) {
         if (state.transitions.length > 0) {
-            const timeoutConditionCount = state.transitions
-                .map(transition => transition.condition)
-                .filter(condition => (condition.$type !== "TimeoutCondition"))
-                .length;
-            const compositeConditionWithTimeoutCount = state.transitions
-                .map(transition => transition.condition)
-                .filter(condition => (condition.$type === "CompositeCondition"))
-                .filter(condition => (this.hasATimeoutCondition(condition)))
-                .length;
-            if (timeoutConditionCount + compositeConditionWithTimeoutCount > 1) {
-                accept("warning", "State has ignored transitions.", {
-                    node: state,
-                    property: "transitions",
-                });
+            const timeoutCondition = state.transitions
+                .map((transition) => transition.condition)
+                .filter((condition) => condition.$type !== "TimeoutCondition")
+                .map((condition) => condition);
+            const compositeConditionWithTimeout = state.transitions
+                .map((transition) => transition.condition)
+                .filter((condition) => condition.$type === "CompositeCondition")
+                .filter((condition) => this.hasATimeoutCondition(condition))
+                .map((condition) => this.getTimeoutCondition(condition));
+            if (timeoutCondition.length > 0 &&
+                compositeConditionWithTimeout.length > 0) {
+                if (timeoutCondition[0].duration <
+                    compositeConditionWithTimeout[0].duration) {
+                    accept("warning", "State has ignored transitions.", {
+                        node: state,
+                        property: "transitions",
+                    });
+                }
             }
         }
     }
