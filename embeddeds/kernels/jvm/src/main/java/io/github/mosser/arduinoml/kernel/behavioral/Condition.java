@@ -5,4 +5,5 @@ import io.github.mosser.arduinoml.kernel.generator.Visitable;
 public abstract class Condition implements Visitable{
 
     public abstract String getCondition() ;
+
 }

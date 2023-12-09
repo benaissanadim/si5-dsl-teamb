@@ -10,6 +10,7 @@ import java.util.List;
 public class State implements NamedElement {
 
 	protected String name;
+
 	@Override
 	public String getName() {
 		return name;
@@ -19,5 +20,6 @@ public class State implements NamedElement {
 	public void setName(String name) {
 		this.name = name;
 	}
+
 
 }

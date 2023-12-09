@@ -4,6 +4,7 @@ import io.github.mosser.arduinoml.kernel.App;
 import io.github.mosser.arduinoml.kernel.behavioral.*;
 import io.github.mosser.arduinoml.kernel.structural.*;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
@@ -27,14 +28,22 @@ public class ToWiring extends Visitor<StringBuffer> {
 		w("// Wiring code generated from an ArduinoML model\n");
 		w(String.format("// Application name: %s\n", app.getName())+"\n");
 		boolean hasTemporalState = false;
+		boolean hasRemoteState = false;
 		w("long debounce = 200;\n");
 		for (State state : app.getStates()) {
-			if (state instanceof NormalState && !((NormalState) state).getTimeoutTransitions().isEmpty()) {
-				hasTemporalState = true;
+			if (state instanceof NormalState){
+				NormalState normalState = (NormalState) state;
+				if(!normalState.getTimeOutConditions().isEmpty()){
+					hasTemporalState = true;
+				}
+				if(!normalState.getRemoteConditions().isEmpty()){
+					hasRemoteState = true;
+				}
 			}
 		}
 		if (hasTemporalState) {
 			w("long startTime;\n");
+			w("bool startTimer = false;\n");
 		}
 		w("\nenum STATE {");
 		String sep ="";
@@ -58,15 +67,18 @@ public class ToWiring extends Visitor<StringBuffer> {
 		//second pass, setup and loop
 		context.put("pass",PASS.TWO);
 		w("\nvoid setup(){\n");
+		w("\tSerial.begin(9600);\n");
 		for(Brick brick: app.getBricks()){
 			brick.accept(this);
 		}
 		w("}\n");
 
-		w("\nvoid loop() {\n" +
-				"\tswitch(currentState){\n");
+		w("\nvoid loop() {\n");
+		if(hasRemoteState){
+			w("\tchar incomingChar = Serial.read();\n");
+		}
+		w("\tswitch(currentState){\n");
 		for(State state: app.getStates()){
-
 			if(state instanceof ErrorState){
 				((ErrorState) state).accept(this);
 			}else
@@ -82,7 +94,7 @@ public class ToWiring extends Visitor<StringBuffer> {
 			return;
 		}
 		if(context.get("pass") == PASS.TWO) {
-			w(String.format("  pinMode(%d, OUTPUT); // %s [Actuator]\n", actuator.getPin(), actuator.getName()));
+			w(String.format("\tpinMode(%d, OUTPUT); // %s [Actuator]\n", actuator.getPin(), actuator.getName()));
 			return;
 		}
 	}
@@ -91,12 +103,12 @@ public class ToWiring extends Visitor<StringBuffer> {
 	@Override
 	public void visit(Sensor sensor) {
 		if(context.get("pass") == PASS.ONE) {
-			w(String.format("\nboolean %sBounceGuard = false;\n", sensor.getName()));
+			w(String.format("\nbool %sBounceGuard = false;\n", sensor.getName()));
 			w(String.format("long %sLastDebounceTime = 0;\n", sensor.getName()));
 			return;
 		}
 		if(context.get("pass") == PASS.TWO) {
-			w(String.format("  pinMode(%d, INPUT);  // %s [Sensor]\n", sensor.getPin(), sensor.getName()));
+			w(String.format("\tpinMode(%d, INPUT);  // %s [Sensor]\n", sensor.getPin(), sensor.getName()));
 			return;
 		}
 	}
@@ -111,6 +123,10 @@ public class ToWiring extends Visitor<StringBuffer> {
 				((ComposedCondition) condition).accept(this);
 			else if (condition instanceof AtomicCondition)
 				((AtomicCondition) condition).accept(this);
+			else if(condition instanceof TimeOutCondition)
+				((TimeOutCondition) condition).accept(this);
+			else if(condition instanceof RemoteCondition)
+				((RemoteCondition) condition).accept(this);
 
 			if (i + 1 < conditionsCount) {
 				getOperator(conditions.getOperator());
@@ -148,6 +164,19 @@ public class ToWiring extends Visitor<StringBuffer> {
 		}
 
 	}
+
+	@Override
+	public void visit(TimeOutCondition timeOutCondition) {
+		if(context.get("pass") == PASS.ONE) {
+			return;
+		}
+		if(context.get("pass") == PASS.TWO) {
+			w(String.format(" ( millis() - startTime > %d", timeOutCondition.getDuration()));
+			w(")");
+		}
+
+	}
+
 	@Override
 	public void visit(ErrorState state) {
 		if(context.get("pass") == PASS.ONE){
@@ -168,7 +197,6 @@ public class ToWiring extends Visitor<StringBuffer> {
 
 	}
 
-
 	@Override
 	public void visit(NormalState state) {
 		if(context.get("pass") == PASS.ONE){
@@ -178,50 +206,37 @@ public class ToWiring extends Visitor<StringBuffer> {
 		if(context.get("pass") == PASS.TWO) {
 
 			w("\t\tcase " + state.getName() + ":\n");
+			if(!state.getRemotes().isEmpty()){
+				for(RemoteCommunication remoteCommunication: state.getRemotes()){
+						remoteCommunication.accept(this);
+				}
+			}
+
 			for (Action action : state.getActions()) {
 				action.accept(this);
 			}
+
 			printConditionBegin(state);
 
-			if (!state.getTimeoutTransitions().isEmpty()) {
-				w(String.format("\t\t\tstartTime = millis();\n"));
-				w(String.format("\t\t\twhile("));
-				int i = 0;
-				for(TimeoutTransition t : state.getTimeoutTransitions()){
-					i++;
-					w(String.format("( millis() - startTime < %d", t.getDuration()));
-					if(t.getCondition() != null) {
-						w(" ");
-						getOperator(t.getOperator());
-						w(" !");
-						t.getCondition().accept(this);
-					}
-					w(")");
-					if(i < state.getTimeoutTransitions().size()) w(" || ");
+			List<TimeOutCondition> timeoutConditions = state.getTimeOutConditions();
+			if (!timeoutConditions.isEmpty()) {
+				w(String.format("\t\t\tif (startTimer == false) {\n"));
+				w(String.format("\t\t\t\tstartTime = millis();\n"));
+				w(String.format("\t\t\t\tstartTimer = true;\n"));
+				w(String.format("\t\t\t}\n"));
+				for(Transition t : state.getTransitions()){
+					Condition c = t.getCondition();
+					w(String.format("\t\t\tif"));
+					c.accept(this);
+					w(String.format("{\n"));
+					w(String.format("\t\t\t\tcurrentState = %s;\n",t.getNext().getName()));
+					w(String.format("\t\t\t\tstartTimer = false;\n"));
+					w(String.format("\t\t\t}\n"));
 				}
-				w("){\n");
-				for (InstantaneousTransition transition : state.getInstantaneousTransitions()) {
-					transition.accept(this);
-				}
-				w("\t\t\tdelayMicroseconds(100);\n");
-				w("\t\t\t}\n");
-				if(state.getTimeoutTransitions().size() ==1 ){
-					w(String.format("\t\t\tcurrentState = %s;\n",state.getTimeoutTransitions().get(0).getNext().getName()));
-				}else if(state.getTimeoutTransitions().size() > 1){
-					for(TimeoutTransition t : state.getTimeoutTransitions()){
-						w(String.format("\t\t\tif( millis() - startTime >= %d", t.getDuration()));
-						if(t.getCondition() != null) {
-							w(" ");
-							getOperator(t.getOperator());
-							w(" ");
-							t.getCondition().accept(this);
-						}
-						w(String.format("){\n\t\t\t\tcurrentState = %s;\n\t\t\t}\n",t.getNext().getName()));
-					}
-				}
+
 				w("\t\t\tbreak;\n");
 				} else {
-					for (InstantaneousTransition transition : state.getInstantaneousTransitions()) {
+					for (Transition transition : state.getTransitions()) {
 							transition.accept(this);
 					}
 					w("\t\t\tbreak;\n");
@@ -229,36 +244,41 @@ public class ToWiring extends Visitor<StringBuffer> {
 		}
 	}
 
+	@Override
+	public void visit(RemoteCondition remoteCondition) {
+		if(context.get("pass") == PASS.ONE) {
+			return;
+		}
+		if(context.get("pass") == PASS.TWO) {
+			w(String.format("incomingChar == '%c' ", remoteCondition.getKey()));
+		}
+	}
+
 	void printConditionBegin(NormalState state) {
 		HashSet<String> names = new HashSet<>();
-		for (InstantaneousTransition transition : state.getInstantaneousTransitions()) {
+		for (Transition transition : state.getTransitions()) {
 			if(transition.getCondition() instanceof ComposedCondition){
 				for (Condition condition : ((ComposedCondition) transition.getCondition()).getConditions()) {
 				if (transition.getCondition() != null) {
 					if (transition.getCondition() instanceof ComposedCondition) {
 						ComposedCondition composedCondition = (ComposedCondition) transition.getCondition();
-						String nameToAdd1 = ((AtomicCondition) composedCondition.getConditions().get(0)).getSensor().getName();
-						String nameToAdd2 = ((AtomicCondition) composedCondition.getConditions().get(1)).getSensor().getName();
-						names.add(nameToAdd1);
-						names.add(nameToAdd2);
+						Condition condition1 = composedCondition.getConditions().get(0);
+						Condition condition2 = composedCondition.getConditions().get(1);
+						if(condition1 instanceof AtomicCondition){
+							String nameToAdd1 = ((AtomicCondition) condition1).getSensor().getName();
+							names.add(nameToAdd1);
+						}
+						if(condition2 instanceof AtomicCondition){
+							String nameToAdd2 = ((AtomicCondition) condition2).getSensor().getName();
+							names.add(nameToAdd2);
+						}
+					}
+					else if (transition.getCondition() instanceof AtomicCondition) {
+						String nameToAdd = ((AtomicCondition) transition.getCondition()).getSensor().getName();
+						names.add(nameToAdd);
 					}
 				}
 			}
-			}
-		}
-		for (TimeoutTransition transition : state.getTimeoutTransitions()) {
-			if (transition.getCondition() != null) {
-				if (transition.getCondition() instanceof ComposedCondition) {
-					ComposedCondition composedCondition = (ComposedCondition) transition.getCondition();
-					String nameToAdd1 = ((AtomicCondition) composedCondition.getConditions().get(0)).getSensor().getName();
-					String nameToAdd2 = ((AtomicCondition) composedCondition.getConditions().get(1)).getSensor().getName();
-					names.add(nameToAdd1);
-					names.add(nameToAdd2);
-				}
-				else if (transition.getCondition() instanceof AtomicCondition) {
-					String nameToAdd = ((AtomicCondition) transition.getCondition()).getSensor().getName();
-					names.add(nameToAdd);
-				}
 			}
 		}
 		for (String name : names) {
@@ -267,7 +287,7 @@ public class ToWiring extends Visitor<StringBuffer> {
 	}
 
 	@Override
-	public void visit(InstantaneousTransition transition) {
+	public void visit(Transition transition) {
 		if(context.get("pass") == PASS.ONE) {
 			return;
 		}
@@ -277,8 +297,15 @@ public class ToWiring extends Visitor<StringBuffer> {
 				if (transition.getCondition() instanceof ComposedCondition) {
 					w("\t\t\tif");
 					((ComposedCondition) transition.getCondition()).accept(this);
-					w(String.format("{\n\t\t\t\t%sLastDebounceTime = millis();\n",((AtomicCondition)((ComposedCondition)transition.getCondition()).getConditions().get(0)).getSensor().getName()));
-					w(String.format("\t\t\t\t%sLastDebounceTime = millis();\n",((AtomicCondition)((ComposedCondition)transition.getCondition()).getConditions().get(1)).getSensor().getName()));
+					Condition condition1 = ((ComposedCondition) transition.getCondition()).getConditions().get(0);
+					Condition condition2 = ((ComposedCondition) transition.getCondition()).getConditions().get(1);
+					if(condition1 instanceof AtomicCondition){
+						w(String.format("{\n\t\t\t\t%sLastDebounceTime = millis();\n",((AtomicCondition) condition1).getSensor().getName()));
+					}
+
+					if(condition2 instanceof AtomicCondition){
+						w(String.format("\t\t\t\t%sLastDebounceTime = millis();\n",((AtomicCondition) condition2).getSensor().getName()));
+					}
 				}else if (transition.getCondition() instanceof AtomicCondition) {
 					w(String.format("\t\t\t%sBounceGuard = static_cast<long>(millis() - %sLastDebounceTime) > debounce;\n", ((AtomicCondition) transition.getCondition()).getSensor().getName(),
 							((AtomicCondition) transition.getCondition()).getSensor().getName()));
@@ -300,15 +327,12 @@ public class ToWiring extends Visitor<StringBuffer> {
 		}
 		if(context.get("pass") == PASS.TWO) {
 			w(String.format("\t\t\tdigitalWrite(%d,%s);\n",action.getActuator().getPin(),action.getValue()));
-			return;
 		}
 	}
 
 	@Override
-	public void visit(TimeoutTransition transition) {
-		w(String.format("\t\t\tcurrentState = %s;\n",transition.getNext().getName()));
-		w("\t\t\tbreak;\n");
-
+	public void visit(RemoteCommunication remoteCommunication) {
+		w(String.format("\t\t\tSerial.println(analogRead(%d));\n", remoteCommunication.getSensor().getPin()));
 	}
 
 }

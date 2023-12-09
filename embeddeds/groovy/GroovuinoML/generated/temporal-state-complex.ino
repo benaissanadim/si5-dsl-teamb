@@ -3,58 +3,58 @@
 
 long debounce = 200;
 long startTime;
+bool startTimer = false;
 
 enum STATE {on, buzz, off};
 STATE currentState = off;
 
-boolean buttonBounceGuard = false;
+bool buttonBounceGuard = false;
 long buttonLastDebounceTime = 0;
 
-boolean breakButtonBounceGuard = false;
+bool breakButtonBounceGuard = false;
 long breakButtonLastDebounceTime = 0;
 
 void setup(){
+	Serial.begin(9600);
   pinMode(9, INPUT);  // button [Sensor]
   pinMode(8, INPUT);  // breakButton [Sensor]
-  pinMode(11, OUTPUT); // led [Actuator]
-  pinMode(10, OUTPUT); // buzzer [Actuator]
+	pinMode(11, OUTPUT); // led [Actuator]
+	pinMode(10, OUTPUT); // buzzer [Actuator]
 }
 
 void loop() {
 	switch(currentState){
 		case on:
-			digitalWrite(11,HIGH);
-			digitalWrite(10,LOW);
 			buttonBounceGuard = static_cast<long>(millis() - buttonLastDebounceTime) > debounce;
 			breakButtonBounceGuard = static_cast<long>(millis() - breakButtonLastDebounceTime) > debounce;
-			startTime = millis();
-			while(( millis() - startTime < 1000  &&  ! ( buttonBounceGuard && digitalRead(9) == HIGH )) || ( millis() - startTime < 2000  &&  ! ( breakButtonBounceGuard && digitalRead(8) == LOW ))){
-			delayMicroseconds(100);
+			if (startTimer == false) {
+				startTime = millis();
+				startTimer = true;
 			}
-			if( millis() - startTime >= 1000  &&   ( buttonBounceGuard && digitalRead(9) == HIGH )){
+			if( ( buttonBounceGuard && digitalRead(9) == HIGH ) &&  ( millis() - startTime > 1000)){
 				currentState = buzz;
+				startTimer = false;
 			}
-			if( millis() - startTime >= 2000  &&   ( breakButtonBounceGuard && digitalRead(8) == LOW )){
+			if( ( breakButtonBounceGuard && digitalRead(8) == LOW ) &&  ( millis() - startTime > 2000)){
 				currentState = off;
+				startTimer = false;
 			}
 			break;
 		case buzz:
-			digitalWrite(10,HIGH);
-			digitalWrite(11,HIGH);
-			startTime = millis();
-			while(( millis() - startTime < 1000)){
-			breakButtonBounceGuard = static_cast<long>(millis() - breakButtonLastDebounceTime) > debounce;
-			if ( breakButtonBounceGuard && digitalRead(8) == HIGH ){
-				breakButtonLastDebounceTime = millis();
+			if (startTimer == false) {
+				startTime = millis();
+				startTimer = true;
+			}
+			if ( millis() - startTime > 1000){
 				currentState = off;
+				startTimer = false;
 			}
-			delayMicroseconds(100);
+			if ( breakButtonBounceGuard && digitalRead(8) == HIGH ){
+				currentState = off;
+				startTimer = false;
 			}
-			currentState = off;
 			break;
 		case off:
-			digitalWrite(11,LOW);
-			digitalWrite(10,LOW);
 			buttonBounceGuard = static_cast<long>(millis() - buttonLastDebounceTime) > debounce;
 			if ( buttonBounceGuard && digitalRead(9) == HIGH ){
 				buttonLastDebounceTime = millis();

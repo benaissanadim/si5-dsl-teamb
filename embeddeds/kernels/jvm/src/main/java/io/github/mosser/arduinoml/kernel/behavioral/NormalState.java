@@ -11,6 +11,25 @@ public class NormalState extends State implements Visitable {
     protected List<Action> actions = new ArrayList<>();
     private List<Transition> transitions = new ArrayList<>();
 
+    protected List<RemoteCommunication> remotes = new ArrayList<RemoteCommunication>();
+
+    public List<RemoteCommunication> getRemoteCommunications() {
+        return remotes;
+    }
+
+    public void addRemote(RemoteCommunication remote) {
+        this.remotes.add(remote);
+    }
+
+    public List<RemoteCommunication> getRemotes() {
+        return remotes;
+    }
+
+    public void setRemotes(List<RemoteCommunication> remotes) {
+        this.remotes = remotes;
+    }
+
+
 
     public void addTransition(Transition transition) {
         this.transitions.add(transition);
@@ -28,42 +47,51 @@ public class NormalState extends State implements Visitable {
         return actions;
     }
 
-    public List<TimeoutTransition> getTimeoutTransitions() {
-        List<TimeoutTransition> transitions = new ArrayList<>();
-        for (Transition transition : this.transitions) {
-            if (transition instanceof TimeoutTransition) {
-                transitions.add((TimeoutTransition) transition);
-            }
-        }
-        return transitions;
-    }
-
-    public List<InstantaneousTransition> getInstantaneousTransitions() {
-        List<InstantaneousTransition> transitions = new ArrayList<>();
-        for (Transition transition : this.transitions) {
-            if (transition instanceof InstantaneousTransition) {
-                transitions.add((InstantaneousTransition) transition);
-            }
-        }
-        return transitions;
-    }
 
     public void setActions(List<Action> actions) {
         this.actions = actions;
     }
 
+
+    public List<TimeOutCondition> getTimeOutConditions() {
+        List<TimeOutCondition> timeOutConditions = new ArrayList<>();
+        for (Transition transition : this.getTransitions()) {
+            Condition condition = transition.getCondition();
+            if (condition instanceof TimeOutCondition) {
+                timeOutConditions.add((TimeOutCondition) condition);
+            }
+            if(condition instanceof ComposedCondition){
+                ComposedCondition composedCondition = (ComposedCondition) condition;
+                timeOutConditions.addAll(composedCondition.getTimeoutConditions((ComposedCondition) condition));
+            }
+        }
+        return timeOutConditions;
+    }
+
+    public List<RemoteCondition> getRemoteConditions() {
+        List<RemoteCondition> timeOutConditions = new ArrayList<>();
+        for (Transition transition : this.getTransitions()) {
+            Condition condition = transition.getCondition();
+            if (condition instanceof RemoteCondition) {
+                timeOutConditions.add((RemoteCondition) condition);
+            }
+            if(condition instanceof ComposedCondition){
+                ComposedCondition composedCondition = (ComposedCondition) condition;
+                Condition condition1 = composedCondition.getConditions().get(0);
+                Condition condition2 = composedCondition.getConditions().get(1);
+                if(condition1 instanceof RemoteCondition){
+                    timeOutConditions.add((RemoteCondition) condition1);
+                }
+                if(condition2 instanceof RemoteCondition){
+                    timeOutConditions.add((RemoteCondition) condition2);
+                }
+            }
+        }
+        return timeOutConditions;
+    }
+
     @Override
     public void accept(Visitor visitor) {
-        List<Transition> transitions = this.getTransitions().stream().filter(t -> t instanceof TimeoutTransition).filter(t2 -> ((TimeoutTransition) t2).getCondition() == null).collect(java.util.stream.Collectors.toList());
-        if (transitions.size() > 1)
-            throw new IllegalArgumentException("Only one timeout transition without condition is allowed");
-        if (transitions.size() == 1) {
-            TimeoutTransition timeoutTransition = (TimeoutTransition) transitions.get(0);
-            List<Transition> transitions2 = this.getTransitions().stream().filter(t -> t instanceof TimeoutTransition).filter(t2 -> ((TimeoutTransition) t2).getCondition() != null).filter(t3 -> ((TimeoutTransition) t3).getDuration()
-                    > timeoutTransition.getDuration()).collect(java.util.stream.Collectors.toList());
-            if (transitions2.size() > 0)
-                Logger.getLogger("TimeoutTransition").warning("Timeout transition is never reached");
-        }
         visitor.visit(this);
     }
 

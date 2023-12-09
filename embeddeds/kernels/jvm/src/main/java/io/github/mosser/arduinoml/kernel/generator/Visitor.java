@@ -12,10 +12,12 @@ public abstract class Visitor<T> {
 	public abstract void visit(App app);
 	public abstract void visit(NormalState state);
 
-	public abstract void visit(InstantaneousTransition transition);
+	public abstract void visit(RemoteCondition remoteCondition);
+
+	public abstract void visit(Transition transition);
 	public abstract void visit(Action action);
 
-	public abstract void visit(TimeoutTransition transition);
+	public abstract void visit(RemoteCommunication remoteCommunication);
 
 	public abstract void visit(ErrorState state);
 	public abstract void visit(Actuator actuator);
@@ -38,4 +40,5 @@ public abstract class Visitor<T> {
 		return result;
 	}
 
+	public abstract void visit(TimeOutCondition timeOutCondition);
 }

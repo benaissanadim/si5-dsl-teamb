@@ -15,10 +15,8 @@ import io.github.mosser.arduinoml.kernel.structural.Sensor;
 public class GroovuinoMLModel {
 	private List<Brick> bricks;
 	private List<State> states;
-	private List<InstantaneousTransition> transitions;
+	private List<Transition> transitions;
 	private List<ErrorState> errors;
-
-	private List<TimeoutTransition> timeoutTransitions;
 
 	private State initialState;
 
@@ -28,8 +26,7 @@ public class GroovuinoMLModel {
 	public GroovuinoMLModel(Binding binding) {
 		this.bricks = new ArrayList<Brick>();
 		this.states = new ArrayList<State>();
-		this.transitions= new ArrayList<InstantaneousTransition>();
-		this.timeoutTransitions = new ArrayList<TimeoutTransition>();
+		this.transitions= new ArrayList<Transition>();
 		this.binding = binding;
 	}
 
@@ -56,8 +53,7 @@ public class GroovuinoMLModel {
 		this.binding.setVariable(name, actuator);
 	}
 
-	public void createState(String name, List<Action> actions) {
-		NormalState state = new NormalState();
+	public void createState(String name, List<Action> actions, NormalState state) {
 		state.setName(name);
 		state.setActions(actions);
 		this.states.add(state);
@@ -73,7 +69,7 @@ public class GroovuinoMLModel {
 	}
 
 	public void createTransition(NormalState from, NormalState to, Sensor sensor, SIGNAL value) {
-		InstantaneousTransition transition = new InstantaneousTransition();
+		Transition transition = new Transition();
 		transition.setNext(to);
 		AtomicCondition atomicCondition = new AtomicCondition();
 		atomicCondition.setSensor(sensor);
@@ -82,13 +78,7 @@ public class GroovuinoMLModel {
 		from.addTransition(transition);
 	}
 
-	public void createTemporalTransition(NormalState from, NormalState to, Integer duration, TimeoutTransition transition) {
-		transition.setDuration(duration);
-		transition.setNext(to);
-		from.addTransition(transition);
-	}
-
-	public void createCompositeTransition(NormalState from, State to, InstantaneousTransition transition) {
+	public void createCompositeTransition(NormalState from, State to, Transition transition) {
 		transition.setNext(to);
 		from.addTransition(transition);
 	}

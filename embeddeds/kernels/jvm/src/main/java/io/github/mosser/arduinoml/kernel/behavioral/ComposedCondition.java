@@ -10,6 +10,8 @@ public class ComposedCondition extends Condition {
 
     private List<Condition> conditions = new ArrayList<>();
     private OPERATOR operator;
+
+
     public void setOperator(OPERATOR operator) {
         this.operator = operator;
     }
@@ -29,8 +31,23 @@ public class ComposedCondition extends Condition {
             System.out.println("Error: ComposedCondition can only have 2 conditions");
             System.exit(1);
         }
-
     }
+
+    public List<TimeOutCondition> getTimeoutConditions(ComposedCondition composedCondition) {
+        List<TimeOutCondition> timeoutConditions = new ArrayList<>();
+
+        for (Condition condition : composedCondition.getConditions()) {
+            if (condition instanceof TimeOutCondition) {
+                timeoutConditions.add((TimeOutCondition) condition);
+            }
+
+            if (condition instanceof ComposedCondition) {
+                timeoutConditions.addAll(getTimeoutConditions((ComposedCondition) condition));
+            }
+        }
+        return timeoutConditions;
+    }
+
 
     public OPERATOR getOperator() {
         return operator;
